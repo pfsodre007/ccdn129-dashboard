@@ -193,8 +193,10 @@
   <div class="tab" onclick="switchTab(2)">💰 Financeiro</div>
 </div>
 
+<!-- ============================================================ TAB 1: MEMBROS ============================================================ -->
 <div id="tab0" class="tab-content active">
 
+  <!-- PAINEL DE FILTROS GLOBAIS -->
   <div class="filter-panel">
     <div style="font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 8px;">Filtros:</div>
     <input type="text" id="searchInput" placeholder="Buscar por nome..." oninput="applyFilters()">
@@ -296,6 +298,7 @@
     </div>
   </div>
 
+  <!-- Members Table -->
   <div class="section-title">Diretório resultante</div>
   <div class="table-wrap">
     <table>
@@ -322,6 +325,7 @@
   </div>
 </div>
 
+<!-- ============================================================ TAB 2: PRESENÇA ============================================================ -->
 <div id="tab1" class="tab-content">
   <div class="grid-4" id="presMetrics"></div>
   <div class="grid-2">
@@ -357,6 +361,7 @@
   </div>
 </div>
 
+<!-- ============================================================ TAB 3: FINANCEIRO ============================================================ -->
 <div id="tab2" class="tab-content">
   <div class="grid-4">
     <div class="metric gold">
@@ -449,7 +454,8 @@ const PG = 20;
 const _charts = {};
 
 function gviz(sheet) {
-  return 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(sheet);
+  // O uso de headers=1 garante que o Google não esconda os títulos da tabela!
+  return 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(sheet);
 }
 
 function parseBRL(s) {
@@ -460,7 +466,7 @@ function parseBRL(s) {
   return parseFloat(s.replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.')) || 0;
 }
 
-// ARQUITETURA DE FETCH MELHORADA (Evita o bug das abas 1 e 2 sumirem)
+// O NOVO MOTOR INFALÍVEL
 async function fetchSheet(name) {
   try {
     const r = await fetch(gviz(name));
@@ -476,14 +482,39 @@ async function fetchSheet(name) {
     
     if (j.status === 'error') throw new Error(`Erro do Google na aba "${name}": ${j.errors[0].message}`);
     
-    // Pega as colunas oficiais do cabeçalho da planilha e transforma em MAIÚSCULAS
-    const cols = (j.table.cols || []).map((c, i) => c && c.label ? c.label.trim().toUpperCase() : `COL_${i}`);
+    let rawCols = (j.table.cols || []).map(c => c && c.label ? String(c.label).trim() : '');
+    let rawRows = j.table.rows || [];
     
-    const rows = (j.table.rows || []).map(row => {
+    // Tratativa especial para o Google Sheets (se ele esconder o cabeçalho nos dados)
+    if (rawRows.length > 0) {
+      const row0 = rawRows[0].c || [];
+      const firstRowVals = row0.map(cell => cell && cell.v !== null ? String(cell.v).trim() : '');
+      // Se encontrarmos palavras-chave, promovemos a linha a cabeçalho
+      if (firstRowVals.some(v => /^(NOME|ID|DATA|STATUS|TIPO|JAN|FEV|VALOR)$/i.test(v))) {
+         rawCols = firstRowVals;
+         rawRows.shift(); 
+      }
+    }
+
+    // Garante nomes únicos para as colunas! (Essencial para as tabelas lado a lado de Conselheiros)
+    const cols = [];
+    const seen = new Set();
+    rawCols.forEach((c, i) => {
+       let colName = c ? c.toUpperCase() : `COL_${i}`;
+       if (seen.has(colName)) {
+           let counter = 2;
+           while (seen.has(`${colName}_${counter}`)) counter++;
+           colName = `${colName}_${counter}`;
+       }
+       seen.add(colName);
+       cols.push(colName);
+    });
+
+    const rows = rawRows.map(row => {
       const o = {};
       cols.forEach((key, i) => {
         const cell = row.c && row.c[i] ? row.c[i] : null;
-        // Pega o valor formatado (ex: datas reais) ou o valor puro
+        // Pega a versão formatada (excelente para datas e dinheiro) ou pura
         const val = (cell && cell.f !== undefined && cell.f !== null) ? cell.f : 
                     (cell && cell.v !== null && cell.v !== undefined) ? cell.v : '';
         o[key] = val !== null && val !== undefined ? String(val).trim() : '';
@@ -541,7 +572,7 @@ async function reloadData() {
       fetchSheet('Chamada \u2014 Presen\u00e7a')
     ]);
 
-    // PREPARAÇÃO DOS DADOS
+    // PREPARAÇÃO DOS DADOS DE MEMBROS
     _allM = mem.rows
       .filter(r => r['ID'] && /^\d+$/.test(r['ID']) && r['NOME'])
       .map(r => ({
@@ -553,15 +584,17 @@ async function reloadData() {
 
     /* ---- presence ---- */
     const knownPres = new Set(['ID','NOME','IDADE','CARGO','GESTÃO','P','F','J','%','← DATA','']);
-    const dateCols = pres.cols.filter(c => c && !knownPres.has(c) && c.includes('/'));
+    // Qualquer coluna que não seja essas oficiais e tenha uma barra / é uma data!
+    const dateCols = pres.cols.filter(c => c && !knownPres.has(c) && (c.includes('/') || c.startsWith('COL_')));
+    
     const presence = pres.rows
       .filter(r => r['ID'] && /^\d+$/.test(r['ID']) && r['NOME'])
       .map(r => {
         const reunioes = {};
         dateCols.forEach(d => { if (r[d]) reunioes[d] = r[d]; });
-        const p = dateCols.filter(d => r[d] === 'P').length;
-        const f = dateCols.filter(d => r[d] === 'F').length;
-        const j = dateCols.filter(d => r[d] === 'J').length;
+        const p = dateCols.filter(d => r[d].toUpperCase() === 'P').length;
+        const f = dateCols.filter(d => r[d].toUpperCase() === 'F').length;
+        const j = dateCols.filter(d => r[d].toUpperCase() === 'J').length;
         const tot = dateCols.filter(d => r[d]).length;
         return { id: +r['ID'], nome: r['NOME'], idade: +r['IDADE']||0, cargo: r['CARGO']||'',
                  p, f, j, pct: tot ? Math.round((p+j)/tot*100) : 0, reunioes };
@@ -580,21 +613,28 @@ async function reloadData() {
 
     /* ---- caixa ---- */
     const caixa = lc.rows
-      .filter(r => r['DATA'] && (r['TIPO'].toUpperCase()==='ENTRADA' || r['TIPO'].toUpperCase()==='SAÍDA') && r['VALOR'])
+      .filter(r => r['DATA'] && r['TIPO'] && r['VALOR'])
       .map(r => ({ data:r['DATA'], tipo:r['TIPO'], categoria:r['CATEGORIA']||'', 
                    descricao:r['DESCRIÇÃO']||'', valor: parseBRL(r['VALOR']), saldo: parseBRL(r['SALDO']) }));
 
     /* ---- conselheiros ---- */
+    // Como criamos colunas únicas, a primeira tabela usa NOME, STATUS, VALOR
     const consColab = cons.rows
       .filter(r => r['NOME'] && /^(PAGO|PENDENTE)$/i.test(r['STATUS']||'') && !r['NOME'].toUpperCase().includes('TOTAL'))
       .map(r => ({ nome:r['NOME'], status:r['STATUS'], valor:parseBRL(r['VALOR'])||180 }));
 
+    // E a segunda tabela vai usar NOME_2, STATUS_2, VALOR_2 (ou similar achado no index > 3)
     let nk='', sk='', vk='';
-    cons.cols.forEach((c,i) => {
-      if (i>4) { if (!nk && c) nk=c; else if (!sk && c) sk=c; else if (!vk && c) vk=c; }
+    cons.cols.forEach((c, i) => {
+      if (i > 3) {
+        if (!nk && c.includes('NOME')) nk = c; 
+        else if (!sk && c.includes('STATUS')) sk = c; 
+        else if (!vk && c.includes('VALOR')) vk = c; 
+      }
     });
+    
     const consEstat = cons.rows
-      .filter(r => r[nk] && /^(PAGO|PENDENTE)$/i.test(r[sk]||'') && !r[nk].toUpperCase().includes('TOTAL'))
+      .filter(r => nk && r[nk] && /^(PAGO|PENDENTE)$/i.test(r[sk]||'') && !r[nk].toUpperCase().includes('TOTAL'))
       .map(r => ({ nome:r[nk], status:r[sk], valor:parseBRL(r[vk])||75 }));
 
     showLoading(false);
@@ -603,7 +643,7 @@ async function reloadData() {
     if (el) el.textContent = 'Atualizado às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 
     /* ---- RENDERIZAÇÃO INICIAL ---- */
-    applyFilters(); // Aciona a renderização global do Painel de Membros
+    applyFilters(); 
     renderPresenca(presence, dateCols);
     renderFinanceiro(caixa, mensalidades, consColab, consEstat);
 
@@ -619,7 +659,6 @@ function applyFilters() {
   const fc = document.getElementById('filterCondicao').value;
   const fs = document.getElementById('filterSituacao').value;
 
-  // Filtra todo o vetor _allM e salva no _filtM
   _filtM = _allM.filter(m => {
     const matchQ = !q || m.nome.toLowerCase().includes(q);
     const matchC = !fc || m.condicao === fc;
@@ -633,7 +672,6 @@ function applyFilters() {
 }
 
 function updateDashboardCompleto(mArray) {
-  // Recalcula totais com base na galera filtrada
   const byC = {}, byS = {}, inicSem = {}; let idades = [];
   mArray.forEach(m => {
     byC[m.condicao] = (byC[m.condicao] || 0) + 1;
@@ -651,7 +689,6 @@ function updateDashboardCompleto(mArray) {
   const idMin = idades.length ? Math.min(...idades) : '—';
   const idMax = idades.length ? Math.max(...idades) : '—';
 
-  // Atualiza HTML dos cards
   const g = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
   g('met-total', mArray.length);
   g('met-dm',    byC['DeMolay Ativo']||0);
@@ -680,7 +717,6 @@ function updateDashboardCompleto(mArray) {
       <div class="prog-bar"><div class="prog-fill" style="width:${total?Math.round(n/total*100):0}%;background:${color}"></div></div>
     </div>`).join('');
 
-  // Atualiza Gráficos (se array vazio, charts somem pra evitar bug visual)
   if (total === 0) return;
 
   const iLabels = Object.keys(inicSem).sort();
@@ -903,3 +939,4 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
