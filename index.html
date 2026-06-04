@@ -454,7 +454,6 @@ const PG = 20;
 const _charts = {};
 
 function gviz(sheet) {
-  // O uso de headers=1 garante que o Google não esconda os títulos da tabela!
   return 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(sheet);
 }
 
@@ -485,18 +484,17 @@ async function fetchSheet(name) {
     let rawCols = (j.table.cols || []).map(c => c && c.label ? String(c.label).trim() : '');
     let rawRows = j.table.rows || [];
     
-    // Tratativa especial para o Google Sheets (se ele esconder o cabeçalho nos dados)
+    // Tratativa especial: se o Google esconder o cabeçalho nos dados
     if (rawRows.length > 0) {
       const row0 = rawRows[0].c || [];
       const firstRowVals = row0.map(cell => cell && cell.v !== null ? String(cell.v).trim() : '');
-      // Se encontrarmos palavras-chave, promovemos a linha a cabeçalho
-      if (firstRowVals.some(v => /^(NOME|ID|DATA|STATUS|TIPO|JAN|FEV|VALOR)$/i.test(v))) {
+      if (firstRowVals.some(v => /^(NOME|ID|DATA|STATUS|TIPO|JAN|FEV|VALOR|CATEGORIA|DESCRIÇÃO|SALDO|PREVISTO)$/i.test(v))) {
          rawCols = firstRowVals;
          rawRows.shift(); 
       }
     }
 
-    // Garante nomes únicos para as colunas! (Essencial para as tabelas lado a lado de Conselheiros)
+    // Garante nomes únicos para as colunas! (Crucial para as tabelas de Conselheiros)
     const cols = [];
     const seen = new Set();
     rawCols.forEach((c, i) => {
@@ -514,7 +512,6 @@ async function fetchSheet(name) {
       const o = {};
       cols.forEach((key, i) => {
         const cell = row.c && row.c[i] ? row.c[i] : null;
-        // Pega a versão formatada (excelente para datas e dinheiro) ou pura
         const val = (cell && cell.f !== undefined && cell.f !== null) ? cell.f : 
                     (cell && cell.v !== null && cell.v !== undefined) ? cell.v : '';
         o[key] = val !== null && val !== undefined ? String(val).trim() : '';
@@ -584,7 +581,6 @@ async function reloadData() {
 
     /* ---- presence ---- */
     const knownPres = new Set(['ID','NOME','IDADE','CARGO','GESTÃO','P','F','J','%','← DATA','']);
-    // Qualquer coluna que não seja essas oficiais e tenha uma barra / é uma data!
     const dateCols = pres.cols.filter(c => c && !knownPres.has(c) && (c.includes('/') || c.startsWith('COL_')));
     
     const presence = pres.rows
@@ -603,7 +599,7 @@ async function reloadData() {
     /* ---- mensalidades ---- */
     const MESES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
     const mensalidades = mens.rows
-      .filter(r => r['ID'] && /^\d+$/.test(r['ID']) && r['NOME'])
+      .filter(r => r['NOME'] && !r['NOME'].toUpperCase().includes('TOTAL'))
       .map(r => {
         const meses = {}; MESES.forEach(m => { meses[m] = parseBRL(r[m]); });
         const total = MESES.reduce((s,m) => s+meses[m], 0);
@@ -613,29 +609,23 @@ async function reloadData() {
 
     /* ---- caixa ---- */
     const caixa = lc.rows
-      .filter(r => r['DATA'] && r['TIPO'] && r['VALOR'])
+      .filter(r => r['DATA'] && r['TIPO']) 
       .map(r => ({ data:r['DATA'], tipo:r['TIPO'], categoria:r['CATEGORIA']||'', 
-                   descricao:r['DESCRIÇÃO']||'', valor: parseBRL(r['VALOR']), saldo: parseBRL(r['SALDO']) }));
+                   descricao:r['DESCRIÇÃO']||r['DESCRICAO']||'', valor: parseBRL(r['VALOR']), saldo: parseBRL(r['SALDO']) }));
 
     /* ---- conselheiros ---- */
-    // Como criamos colunas únicas, a primeira tabela usa NOME, STATUS, VALOR
     const consColab = cons.rows
-      .filter(r => r['NOME'] && /^(PAGO|PENDENTE)$/i.test(r['STATUS']||'') && !r['NOME'].toUpperCase().includes('TOTAL'))
-      .map(r => ({ nome:r['NOME'], status:r['STATUS'], valor:parseBRL(r['VALOR'])||180 }));
+      .filter(r => r['NOME'] && !r['NOME'].toUpperCase().includes('TOTAL'))
+      .map(r => ({ nome:r['NOME'], status:r['STATUS'] || r['SITUAÇÃO'] || r['SITUACAO'] || '', valor:parseBRL(r['VALOR'])||180 }));
 
-    // E a segunda tabela vai usar NOME_2, STATUS_2, VALOR_2 (ou similar achado no index > 3)
-    let nk='', sk='', vk='';
-    cons.cols.forEach((c, i) => {
-      if (i > 3) {
-        if (!nk && c.includes('NOME')) nk = c; 
-        else if (!sk && c.includes('STATUS')) sk = c; 
-        else if (!vk && c.includes('VALOR')) vk = c; 
-      }
-    });
+    // Garante que a segunda tabela seja pega mesmo com nomes variáveis!
+    const nk = cons.cols.find(c => c === 'NOME_2') || '';
+    const sk = cons.cols.find(c => c === 'STATUS_2' || c === 'SITUAÇÃO_2' || c === 'SITUACAO_2') || '';
+    const vk = cons.cols.find(c => c === 'VALOR_2') || '';
     
     const consEstat = cons.rows
-      .filter(r => nk && r[nk] && /^(PAGO|PENDENTE)$/i.test(r[sk]||'') && !r[nk].toUpperCase().includes('TOTAL'))
-      .map(r => ({ nome:r[nk], status:r[sk], valor:parseBRL(r[vk])||75 }));
+      .filter(r => nk && r[nk] && !r[nk].toUpperCase().includes('TOTAL'))
+      .map(r => ({ nome:r[nk], status: sk ? (r[sk] || '') : '', valor:parseBRL(r[vk])||75 }));
 
     showLoading(false);
     const now = new Date();
@@ -851,11 +841,15 @@ function renderPresenca(pres, dates) {
 
 function renderFinanceiro(caixa, mens, consColab, consEstat) {
   const ent=caixa.filter(c=>c.tipo.toUpperCase()==='ENTRADA').reduce((s,c)=>s+c.valor,0);
-  const sai=caixa.filter(c=>c.tipo.toUpperCase()==='SAÍDA').reduce((s,c)=>s+c.valor,0);
+  const sai=caixa.filter(c=>c.tipo.toUpperCase()==='SAÍDA' || c.tipo.toUpperCase()==='SAIDA').reduce((s,c)=>s+c.valor,0);
   const saldo=ent-sai;
-  const cPago=consColab.filter(c=>c.status.toUpperCase()==='PAGO').reduce((s,c)=>s+c.valor,0);
+
+  // Lógica de "status pago" mais amigável, aceita "PAGO", "OK" ou "SIM"
+  const isPago = status => /^(PAGO|OK|SIM)$/i.test(String(status).trim());
+
+  const cPago=consColab.filter(c=>isPago(c.status)).reduce((s,c)=>s+c.valor,0);
   const cPrev=consColab.reduce((s,c)=>s+c.valor,0);
-  const ePago=consEstat.filter(c=>c.status.toUpperCase()==='PAGO').reduce((s,c)=>s+c.valor,0);
+  const ePago=consEstat.filter(c=>isPago(c.status)).reduce((s,c)=>s+c.valor,0);
   const ePrev=consEstat.reduce((s,c)=>s+c.valor,0);
   const tCA=cPago+ePago, tCP=cPrev+ePrev;
 
@@ -903,7 +897,7 @@ function renderFinanceiro(caixa, mens, consColab, consEstat) {
     cC.innerHTML=consColab.map(c=>`<div class="cons-item">
       <span class="cons-name">${c.nome}</span>
       <div class="cons-right"><span class="cons-valor">R$ ${c.valor.toFixed(0)}</span>
-      <span class="badge ${c.status.toUpperCase()==='PAGO'?'badge-pago':'badge-pendente'}">${c.status}</span></div>
+      <span class="badge ${isPago(c.status)?'badge-pago':'badge-pendente'}">${c.status || 'Pendente'}</span></div>
     </div>`).join('');
   }
   g('colabSummary',`R$ ${cPago.toFixed(0)} / R$ ${cPrev.toFixed(0)}`);
@@ -913,7 +907,7 @@ function renderFinanceiro(caixa, mens, consColab, consEstat) {
     cE.innerHTML=consEstat.map(c=>`<div class="cons-item">
       <span class="cons-name">${c.nome}</span>
       <div class="cons-right"><span class="cons-valor">R$ ${c.valor.toFixed(0)}</span>
-      <span class="badge ${c.status.toUpperCase()==='PAGO'?'badge-pago':'badge-pendente'}">${c.status}</span></div>
+      <span class="badge ${isPago(c.status)?'badge-pago':'badge-pendente'}">${c.status || 'Pendente'}</span></div>
     </div>`).join('');
   }
   g('estatSummary',`R$ ${ePago.toFixed(0)} / R$ ${ePrev.toFixed(0)}`);
@@ -939,4 +933,3 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
-
