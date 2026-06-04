@@ -249,8 +249,11 @@ async function loadData(){
     rawMem=m.rows.filter(r=>r['ID']&&r['NOME']&&r['NOME'].trim());
     rawMens=mn.rows.filter(r=>r['ID']&&r['ID'].trim());
     rawCons=co.rows;
-    rawLC=lc.rows.filter(r=>r['DATA']&&r['TIPO']&&r['VALOR']&&parseBRL(r['VALOR'])>0);
+    rawLC=lc.rows.filter(r=>r['DATA']&&r['DATA'].trim()&&r['TIPO']&&(r['TIPO']==='Entrada'||r['TIPO']==='Saída')&&r['VALOR']&&r['VALOR'].trim());
     rawPres=pr.rows.filter(r=>r['ID']&&r['NOME']&&r['NOME'].trim());
+    if(rawPres.length>0)console.log('[PRES] colunas:',Object.keys(rawPres[0]));
+    if(rawMens.length>0)console.log('[MENS] exemplo linha 1:',JSON.stringify(rawMens[0]));
+    if(rawCons.length>0)console.log('[CONS] colunas:',Object.keys(rawCons[0]));
     const now=new Date();
     const t=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     document.getElementById('last-update').textContent='Atualizado às '+t;
@@ -269,7 +272,10 @@ async function loadData(){
 
 function parseBRL(s){
   if(!s)return 0;
-  return parseFloat(s.replace(/[R$\s.]/g,'').replace(',','.'))||0;
+  s=String(s).trim();
+  if(/^\d+\.\d+$/.test(s))return parseFloat(s)||0;
+  if(/^\d+$/.test(s))return parseFloat(s)||0;
+  return parseFloat(s.replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.'))||0;
 }
 
 function countBy(arr,key){
@@ -379,7 +385,13 @@ function renderMembros(mem){
 
 function renderPresenca(){
   const presHeader=rawPres.length>0?Object.keys(rawPres[0]):[];
-  const dateCols=presHeader.filter(c=>/^\d{2}\/\d{2}\/\d{4}$/.test(c));
+  const knownCols=new Set(['ID','NOME','IDADE','CARGO','GESTÃO','P','F','J','%','← data','']);
+  const dateCols=presHeader.filter(c=>{
+    if(knownCols.has(c))return false;
+    if(!c||!c.trim())return false;
+    // Aceita dd/mm, dd/mm/yyyy, ou qualquer label com barra e números
+    return /\d.*\/.*\d/.test(c);
+  });
   const MESES=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
 
   const n=rawPres.length;
@@ -453,7 +465,7 @@ function renderPresenca(){
 
 function renderFinanceiro(){
   const MESES=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-  const mensData=rawMens.filter(r=>r['NOME']&&r['NOME'].trim());
+  const mensData=rawMens.filter(r=>r['ID']&&r['ID'].trim()&&r['NOME']&&r['NOME'].trim()&&r['ID'].match(/^\d+$/));
 
   let totalMens=0;
   mensData.forEach(r=>MESES.forEach(m=>{totalMens+=parseBRL(r[m]);}));
@@ -466,7 +478,7 @@ function renderFinanceiro(){
   const sai=rawLC.filter(r=>r['TIPO']==='Saída').reduce((s,r)=>s+parseBRL(r['VALOR']),0);
   const saldo=ent-sai;
 
-  const collab=rawCons.filter(r=>r['NOME']&&r['STATUS']&&r['VALOR']&&!r['NOME'].includes('TOTAL')&&r['NOME'].trim());
+  const collab=rawCons.filter(r=>r['NOME']&&r['STATUS']&&r['VALOR']&&r['NOME'].trim()&&!r['NOME'].includes('TOTAL')&&!r['NOME'].includes('CONSELHO')&&r['STATUS'].match(/^(Pago|Pendente)$/));
   const collabPago=collab.filter(r=>r['STATUS']==='Pago').reduce((s,r)=>s+parseBRL(r['VALOR']),0);
   const collabPend=collab.filter(r=>r['STATUS']!=='Pago').reduce((s,r)=>s+parseBRL(r['VALOR']),0);
   const collabTotal=collab.reduce((s,r)=>s+parseBRL(r['VALOR']),0);
