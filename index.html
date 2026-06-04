@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CCDN 129 — Hub de Gestão</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Link corrigido para a versão UMD (Global) do Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #0f1117;
@@ -179,9 +180,15 @@
 <body>
 
 <div id="loading-overlay" style="position:fixed;inset:0;background:rgba(15,17,23,0.93);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;">
-  <div style="width:42px;height:42px;border:3px solid rgba(255,255,255,0.1);border-top-color:#c9a227;border-radius:50%;animation:spin 0.8s linear infinite"></div>
-  <div style="font-size:14px;font-weight:600;color:#c9a227">Carregando dados...</div>
-  <div style="font-size:12px;color:#5e6a8a">Google Sheets · CCDN 129</div>
+  <div style="width:42px;height:42px;border:3px solid rgba(255,255,255,0.1);border-top-color:#c9a227;border-radius:50%;animation:spin 0.8s linear infinite" id="spinner"></div>
+  <div style="font-size:14px;font-weight:600;color:#c9a227" id="loading-text">Carregando dados...</div>
+  <div style="font-size:12px;color:#5e6a8a" id="loading-sub">Google Sheets · CCDN 129</div>
+  <div id="error-box" style="display:none;background:#161b26;border:1px solid #ef4444;border-radius:12px;padding:32px;max-width:440px;text-align:center;margin-top:20px;">
+    <div style="font-size:32px;margin-bottom:12px">⚠️</div>
+    <div style="font-weight:700;color:#ef4444;font-size:15px;margin-bottom:8px">Erro ao carregar dados</div>
+    <div id="error-message" style="font-size:13px;color:#9aa3be;margin-bottom:20px;word-break:break-word;"></div>
+    <button onclick="reloadData()" style="background:#c9a227;color:#000;border:none;border-radius:8px;padding:9px 22px;font-weight:700;font-size:13px;cursor:pointer">↺ Tentar novamente</button>
+  </div>
 </div>
 
 <div class="header">
@@ -203,6 +210,7 @@
   <div class="tab" onclick="switchTab(2)">💰 Financeiro</div>
 </div>
 
+<!-- ============================================================ TAB 1: MEMBROS ============================================================ -->
 <div id="tab0" class="tab-content active">
 
   <div class="grid-4">
@@ -287,6 +295,7 @@
     </div>
   </div>
 
+  <!-- Members Table -->
   <div class="section-title">Diretório completo de membros</div>
   <div class="table-search">
     <input type="text" id="searchInput" placeholder="Buscar por nome..." oninput="filterTable()">
@@ -330,6 +339,7 @@
   </div>
 </div>
 
+<!-- ============================================================ TAB 2: PRESENÇA ============================================================ -->
 <div id="tab1" class="tab-content">
 
   <div class="grid-4" id="presMetrics"></div>
@@ -368,6 +378,7 @@
   </div>
 </div>
 
+<!-- ============================================================ TAB 3: FINANCEIRO ============================================================ -->
 <div id="tab2" class="tab-content">
 
   <div class="grid-4">
@@ -394,6 +405,7 @@
   </div>
 
   <div class="grid-2">
+    <!-- Livro Caixa -->
     <div class="card">
       <div class="card-title"><span class="dot dot-gold"></span>Livro Caixa — S1/2026</div>
       <div class="table-wrap" style="margin-top:4px;">
@@ -411,6 +423,7 @@
       </div>
     </div>
 
+    <!-- Mensalidades -->
     <div class="card">
       <div class="card-title"><span class="dot dot-blue"></span>Mensalidades — DeMolays 2025</div>
       <div class="table-wrap" style="margin-top:4px; max-height: 340px; overflow-y: auto;">
@@ -430,6 +443,7 @@
   </div>
 
   <div class="grid-2">
+    <!-- Conselheiros Colaborativo -->
     <div class="card">
       <div class="card-title"><span class="dot dot-purple"></span>Conselho Colaborativo — Anuidade S1/2025</div>
       <div class="cons-list" id="consCOlab"></div>
@@ -439,6 +453,7 @@
       </div>
     </div>
 
+    <!-- Conselheiros Estatutário -->
     <div class="card">
       <div class="card-title"><span class="dot dot-teal"></span>Conselho Estatutário — Anuidade S1/2025</div>
       <div class="cons-list" id="consEstat"></div>
@@ -470,21 +485,32 @@ function parseBRL(s) {
   return parseFloat(s.replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.')) || 0;
 }
 
-// MELHORIA NO SISTEMA DE ERROS
+// ARQUITETURA ANTI-TRAVAMENTO REESCRITA (Sem uso de RegEx)
 async function fetchSheet(name) {
   try {
     const r = await fetch(gviz(name));
-    if (!r.ok) throw new Error(`Falha na rede: ${r.status}`);
+    if (!r.ok) throw new Error(`Falha na rede: HTTP ${r.status}`);
     const txt = await r.text();
     
-    const m = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);?\s*$/);
-    if (!m) {
-      throw new Error(`A aba "${name}" não foi encontrada. Verifique se o nome dela na planilha está EXATAMENTE igual (incluindo espaços e traços).`);
+    const prefix = 'setResponse(';
+    const idx = txt.indexOf(prefix);
+    
+    if (idx === -1) {
+      throw new Error(`A aba "${name}" não foi encontrada. IMPORTANTE: Confirme se os traços no código são exatamente iguais aos da planilha (ex: - vs —).`);
     }
     
-    const j = JSON.parse(m[1]);
+    const jsonStart = txt.indexOf('{', idx);
+    const jsonEnd = txt.lastIndexOf('}');
+    
+    if (jsonStart === -1 || jsonEnd === -1) {
+       throw new Error(`O Google retornou dados corrompidos para a aba "${name}".`);
+    }
+    
+    const jsonString = txt.substring(jsonStart, jsonEnd + 1);
+    const j = JSON.parse(jsonString);
+    
     if (j.status === 'error') {
-       throw new Error(`O Google recusou a aba "${name}". Motivo: ${j.errors[0].message}`);
+       throw new Error(`Erro do Google na aba "${name}": ${j.errors[0].message}`);
     }
     
     const cols = (j.table.cols || []).map(c => c ? c.label : '');
@@ -504,21 +530,39 @@ async function fetchSheet(name) {
 
 /* ---- Loading / Error UI ---- */
 function showLoading(v) {
-  const el = document.getElementById('loading-overlay');
-  if (el) el.style.display = v ? 'flex' : 'none';
+  const overlay = document.getElementById('loading-overlay');
+  const spinner = document.getElementById('spinner');
+  const txt = document.getElementById('loading-text');
+  const sub = document.getElementById('loading-sub');
+  const errBox = document.getElementById('error-box');
+  
+  if (!overlay) return;
+  
+  if (v) {
+    overlay.style.display = 'flex';
+    spinner.style.display = 'block';
+    txt.style.display = 'block';
+    sub.style.display = 'block';
+    errBox.style.display = 'none';
+  } else {
+    overlay.style.display = 'none';
+  }
 }
 
 function showError(msg) {
-  const el = document.getElementById('loading-overlay');
-  if(el) {
-    el.innerHTML = `
-    <div style="background:#161b26;border:1px solid #ef4444;border-radius:12px;padding:32px;max-width:440px;text-align:center">
-      <div style="font-size:32px;margin-bottom:12px">⚠️</div>
-      <div style="font-weight:700;color:#ef4444;font-size:15px;margin-bottom:8px">Erro ao carregar dados</div>
-      <div style="font-size:13px;color:#9aa3be;margin-bottom:20px">${msg}</div>
-      <button onclick="reloadData()" style="background:#c9a227;color:#000;border:none;border-radius:8px;padding:9px 22px;font-weight:700;font-size:13px;cursor:pointer">↺ Tentar novamente</button>
-    </div>`;
-    el.style.display = 'flex';
+  const spinner = document.getElementById('spinner');
+  const txt = document.getElementById('loading-text');
+  const sub = document.getElementById('loading-sub');
+  const errBox = document.getElementById('error-box');
+  const errMsg = document.getElementById('error-message');
+  
+  if (spinner) spinner.style.display = 'none';
+  if (txt) txt.style.display = 'none';
+  if (sub) sub.style.display = 'none';
+  
+  if (errBox && errMsg) {
+    errMsg.textContent = msg;
+    errBox.style.display = 'block';
   }
 }
 
@@ -526,7 +570,7 @@ function showError(msg) {
 const _charts = {};
 function mkChart(id, config) {
   if (typeof Chart === 'undefined') {
-     throw new Error("A biblioteca de gráficos (Chart.js) não foi carregada pelo navegador.");
+     throw new Error("A biblioteca de gráficos (Chart.js) falhou ao carregar.");
   }
   if (_charts[id]) { _charts[id].destroy(); }
   const ctx = document.getElementById(id);
@@ -542,9 +586,10 @@ async function reloadData() {
   Object.keys(_charts).forEach(k => { try { _charts[k].destroy(); } catch(e){} delete _charts[k]; });
   
   try {
+    // ATENÇÃO AQUI: Verifique se esses nomes são IDÊNTICOS aos da sua planilha.
     const [mem, mens, cons, lc, pres] = await Promise.all([
       fetchSheet('Membros CCDN 129'),
-      fetchSheet('Financeiro \u2014 Mensalidades'),
+      fetchSheet('Financeiro \u2014 Mensalidades'), // \u2014 é o travessão (—). Se for hífen, mude para '-'
       fetchSheet('Financeiro \u2014 Conselheiros'),
       fetchSheet('Financeiro \u2014 Livro Caixa'),
       fetchSheet('Chamada \u2014 Presen\u00e7a')
@@ -648,7 +693,6 @@ async function reloadData() {
 
   } catch(e) {
     console.error(e);
-    // Agora o erro real e detalhado será exibido na tela
     showError(e.message || "Erro desconhecido ao processar planilha.");
   }
 }
