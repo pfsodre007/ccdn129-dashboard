@@ -465,7 +465,7 @@ function parseBRL(s) {
   return parseFloat(s.replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.')) || 0;
 }
 
-// O NOVO MOTOR INFALÍVEL
+// ARQUITETURA DE LEITURA POSICIONAL (FUZZY MATCHING)
 async function fetchSheet(name) {
   try {
     const r = await fetch(gviz(name));
@@ -484,17 +484,17 @@ async function fetchSheet(name) {
     let rawCols = (j.table.cols || []).map(c => c && c.label ? String(c.label).trim() : '');
     let rawRows = j.table.rows || [];
     
-    // Tratativa especial: se o Google esconder o cabeçalho nos dados
+    // Tratativa especial para o Google Sheets (se ele esconder o cabeçalho nos dados)
     if (rawRows.length > 0) {
       const row0 = rawRows[0].c || [];
       const firstRowVals = row0.map(cell => cell && cell.v !== null ? String(cell.v).trim() : '');
-      if (firstRowVals.some(v => /^(NOME|ID|DATA|STATUS|TIPO|JAN|FEV|VALOR|CATEGORIA|DESCRIÇÃO|SALDO|PREVISTO)$/i.test(v))) {
+      if (firstRowVals.some(v => /^(NOME|ID|DATA|STATUS|TIPO|JAN|FEV|VALOR|CATEGORIA|DESCRIÇÃO|SALDO|PREVISTO|SITUAÇÃO)$/i.test(v))) {
          rawCols = firstRowVals;
          rawRows.shift(); 
       }
     }
 
-    // Garante nomes únicos para as colunas! (Crucial para as tabelas de Conselheiros)
+    // Mapeamento à prova de balas
     const cols = [];
     const seen = new Set();
     rawCols.forEach((c, i) => {
@@ -508,16 +508,23 @@ async function fetchSheet(name) {
        cols.push(colName);
     });
 
+    // Anexando os dados puros (_cells) para resgate posicional
     const rows = rawRows.map(row => {
       const o = {};
-      cols.forEach((key, i) => {
+      const cells = [];
+      const maxCols = Math.max(cols.length, row.c ? row.c.length : 0, 20); // Garante tamanho mínimo
+      for (let i = 0; i < maxCols; i++) {
         const cell = row.c && row.c[i] ? row.c[i] : null;
         const val = (cell && cell.f !== undefined && cell.f !== null) ? cell.f : 
                     (cell && cell.v !== null && cell.v !== undefined) ? cell.v : '';
-        o[key] = val !== null && val !== undefined ? String(val).trim() : '';
-      });
+        const strVal = val !== null && val !== undefined ? String(val).trim() : '';
+        cells.push(strVal);
+        if (cols[i]) o[cols[i]] = strVal;
+      }
+      o._cells = cells;
       return o;
     });
+    
     return { cols, rows };
   } catch (err) {
     throw new Error(err.message);
@@ -569,7 +576,7 @@ async function reloadData() {
       fetchSheet('Chamada \u2014 Presen\u00e7a')
     ]);
 
-    // PREPARAÇÃO DOS DADOS DE MEMBROS
+    // ================= MEMBROS =================
     _allM = mem.rows
       .filter(r => r['ID'] && /^\d+$/.test(r['ID']) && r['NOME'])
       .map(r => ({
@@ -579,7 +586,7 @@ async function reloadData() {
         cargo: r['CARGO CAPÍTULO'] || ''
       }));
 
-    /* ---- presence ---- */
+    // ================= PRESENÇA =================
     const knownPres = new Set(['ID','NOME','IDADE','CARGO','GESTÃO','P','F','J','%','← DATA','']);
     const dateCols = pres.cols.filter(c => c && !knownPres.has(c) && (c.includes('/') || c.startsWith('COL_')));
     
@@ -596,43 +603,90 @@ async function reloadData() {
                  p, f, j, pct: tot ? Math.round((p+j)/tot*100) : 0, reunioes };
       });
 
-    /* ---- mensalidades ---- */
+    // ================= MENSALIDADES (FUZZY) =================
+    let cNomeM = -1, cPrevM = -1;
+    const cMeses = {};
     const MESES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+    mens.cols.forEach((c, i) => {
+       const up = c.toUpperCase();
+       if (up.includes('NOME') || up.includes('DEMOLAY')) cNomeM = i;
+       if (up.includes('PREVISTO') || up.includes('TOTAL')) cPrevM = i;
+       MESES.forEach(m => { if (up === m || up.includes(m)) cMeses[m] = i; });
+    });
+    if (cNomeM === -1) cNomeM = 0; // Fallback caso o cabeçalho desapareça
+
     const mensalidades = mens.rows
-      .filter(r => r['NOME'] && !r['NOME'].toUpperCase().includes('TOTAL'))
       .map(r => {
-        const meses = {}; MESES.forEach(m => { meses[m] = parseBRL(r[m]); });
-        const total = MESES.reduce((s,m) => s+meses[m], 0);
-        const previsto = parseBRL(r['PREVISTO']) || 180;
-        return { nome: r['NOME'], meses, total, previsto, pct: previsto ? +(total/previsto*100).toFixed(1) : 0 };
-      });
+         const nome = r._cells[cNomeM];
+         const meses = {};
+         let total = 0;
+         MESES.forEach((m, idx) => {
+            const colIdx = cMeses[m] !== undefined ? cMeses[m] : (idx + 1); // Fallback: Jan = Col 1, Fev = Col 2...
+            const val = parseBRL(r._cells[colIdx]);
+            meses[m] = val;
+            total += val;
+         });
+         const previsto = cPrevM !== -1 ? parseBRL(r._cells[cPrevM]) : 180;
+         return { nome, meses, total, previsto, pct: previsto ? +(total/previsto*100).toFixed(1) : 0 };
+      })
+      .filter(c => c.nome && !c.nome.toUpperCase().includes('TOTAL'));
 
-    /* ---- caixa ---- */
+    // ================= LIVRO CAIXA (FUZZY) =================
+    let cData = -1, cTipo = -1, cCat = -1, cDesc = -1, cValor = -1, cSaldo = -1;
+    lc.cols.forEach((c, i) => {
+        const up = c.toUpperCase();
+        if (up.includes('DATA')) cData = i;
+        else if (up.includes('TIPO') || up.includes('MOVIMENTO')) cTipo = i;
+        else if (up.includes('CATEGORIA')) cCat = i;
+        else if (up.includes('DESCRI') || up.includes('HISTÓRICO')) cDesc = i;
+        else if (up.includes('VALOR') || up.includes('QUANTIA') || up.includes('R$')) cValor = i;
+        else if (up.includes('SALDO')) cSaldo = i;
+    });
+    // Fallbacks
+    if (cData === -1) cData = 0; if (cTipo === -1) cTipo = 1; if (cCat === -1) cCat = 2;
+    if (cDesc === -1) cDesc = 3; if (cValor === -1) cValor = 4; if (cSaldo === -1) cSaldo = 5;
+
     const caixa = lc.rows
-      .filter(r => r['DATA'] && r['TIPO']) 
-      .map(r => ({ data:r['DATA'], tipo:r['TIPO'], categoria:r['CATEGORIA']||'', 
-                   descricao:r['DESCRIÇÃO']||r['DESCRICAO']||'', valor: parseBRL(r['VALOR']), saldo: parseBRL(r['SALDO']) }));
+      .map(r => ({
+          data: r._cells[cData], tipo: r._cells[cTipo], categoria: r._cells[cCat],
+          descricao: r._cells[cDesc], valor: parseBRL(r._cells[cValor]), saldo: parseBRL(r._cells[cSaldo])
+      }))
+      .filter(r => r.data && r.tipo);
 
-    /* ---- conselheiros ---- */
+    // ================= CONSELHEIROS (FUZZY DUPLO) =================
+    let cNome1 = -1, cStatus1 = -1, cValor1 = -1;
+    let cNome2 = -1, cStatus2 = -1, cValor2 = -1;
+    cons.cols.forEach((c, i) => {
+       const up = c.toUpperCase();
+       if (up.includes('NOME') || up.includes('CONSELHEIRO')) { 
+           if (cNome1 === -1) cNome1 = i; else if (cNome2 === -1) cNome2 = i; 
+       }
+       if (up.includes('STATUS') || up.includes('SITUA')) { 
+           if (cStatus1 === -1) cStatus1 = i; else if (cStatus2 === -1) cStatus2 = i; 
+       }
+       if (up.includes('VALOR') || up.includes('PAGO') || up.includes('QUANTIA')) { 
+           if (cValor1 === -1) cValor1 = i; else if (cValor2 === -1) cValor2 = i; 
+       }
+    });
+    // Fallbacks robustos (Posicionais)
+    if (cNome1 === -1) cNome1 = 0; if (cStatus1 === -1) cStatus1 = 1; if (cValor1 === -1) cValor1 = 2;
+    if (cNome2 === -1) cNome2 = 4; if (cStatus2 === -1) cStatus2 = 5; if (cValor2 === -1) cValor2 = 6;
+
     const consColab = cons.rows
-      .filter(r => r['NOME'] && !r['NOME'].toUpperCase().includes('TOTAL'))
-      .map(r => ({ nome:r['NOME'], status:r['STATUS'] || r['SITUAÇÃO'] || r['SITUACAO'] || '', valor:parseBRL(r['VALOR'])||180 }));
+      .map(r => ({ nome: r._cells[cNome1], status: r._cells[cStatus1], valor: parseBRL(r._cells[cValor1]) || 180 }))
+      .filter(c => c.nome && !c.nome.toUpperCase().includes('TOTAL'));
 
-    // Garante que a segunda tabela seja pega mesmo com nomes variáveis!
-    const nk = cons.cols.find(c => c === 'NOME_2') || '';
-    const sk = cons.cols.find(c => c === 'STATUS_2' || c === 'SITUAÇÃO_2' || c === 'SITUACAO_2') || '';
-    const vk = cons.cols.find(c => c === 'VALOR_2') || '';
-    
     const consEstat = cons.rows
-      .filter(r => nk && r[nk] && !r[nk].toUpperCase().includes('TOTAL'))
-      .map(r => ({ nome:r[nk], status: sk ? (r[sk] || '') : '', valor:parseBRL(r[vk])||75 }));
+      .map(r => ({ nome: r._cells[cNome2], status: r._cells[cStatus2], valor: parseBRL(r._cells[cValor2]) || 75 }))
+      .filter(c => c.nome && !c.nome.toUpperCase().includes('TOTAL'));
 
     showLoading(false);
     const now = new Date();
     const el = document.getElementById('last-update');
     if (el) el.textContent = 'Atualizado às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 
-    /* ---- RENDERIZAÇÃO INICIAL ---- */
+    /* ---- RENDERIZAÇÃO ---- */
     applyFilters(); 
     renderPresenca(presence, dateCols);
     renderFinanceiro(caixa, mensalidades, consColab, consEstat);
@@ -707,7 +761,13 @@ function updateDashboardCompleto(mArray) {
       <div class="prog-bar"><div class="prog-fill" style="width:${total?Math.round(n/total*100):0}%;background:${color}"></div></div>
     </div>`).join('');
 
-  if (total === 0) return;
+  if (total === 0) {
+      if (_charts['inicChart']) _charts['inicChart'].destroy();
+      if (_charts['demoChart']) _charts['demoChart'].destroy();
+      if (_charts['condicaoChart']) _charts['condicaoChart'].destroy();
+      if (_charts['situacaoChart']) _charts['situacaoChart'].destroy();
+      return;
+  }
 
   const iLabels = Object.keys(inicSem).sort();
   const iVals   = iLabels.map(k => inicSem[k]);
@@ -840,12 +900,13 @@ function renderPresenca(pres, dates) {
 }
 
 function renderFinanceiro(caixa, mens, consColab, consEstat) {
-  const ent=caixa.filter(c=>c.tipo.toUpperCase()==='ENTRADA').reduce((s,c)=>s+c.valor,0);
-  const sai=caixa.filter(c=>c.tipo.toUpperCase()==='SAÍDA' || c.tipo.toUpperCase()==='SAIDA').reduce((s,c)=>s+c.valor,0);
-  const saldo=ent-sai;
+  // Lógica inteligente para Entradas e Saídas
+  const ent = caixa.filter(c => /^(ENTRADA|RECEITA|CRÉDITO|CREDITO|\+)$/i.test(c.tipo.trim())).reduce((s,c)=>s+c.valor,0);
+  const sai = caixa.filter(c => /^(SAÍDA|SAIDA|DESPESA|DÉBITO|DEBITO|-)$/i.test(c.tipo.trim())).reduce((s,c)=>s+c.valor,0);
+  const saldo = ent - sai;
 
-  // Lógica de "status pago" mais amigável, aceita "PAGO", "OK" ou "SIM"
-  const isPago = status => /^(PAGO|OK|SIM)$/i.test(String(status).trim());
+  // Lógica inteligente para Status "Pago"
+  const isPago = status => /^(PAGO|OK|SIM|S|V|TRUE|1)$/i.test(String(status).trim());
 
   const cPago=consColab.filter(c=>isPago(c.status)).reduce((s,c)=>s+c.valor,0);
   const cPrev=consColab.reduce((s,c)=>s+c.valor,0);
@@ -865,15 +926,17 @@ function renderFinanceiro(caixa, mens, consColab, consEstat) {
   if (cxB) {
     cxB.innerHTML=caixa.map(c=>`<tr>
       <td>${c.data}</td>
-      <td class="${c.tipo.toUpperCase()==='ENTRADA'?'tipo-entrada':'tipo-saida'}">${c.tipo}</td>
+      <td class="${/^(ENTRADA|RECEITA|CRÉDITO|CREDITO|\+)$/i.test(c.tipo) ? 'tipo-entrada' : 'tipo-saida'}">${c.tipo}</td>
       <td style="color:var(--text3);font-size:12px">${c.categoria}</td>
       <td class="primary" style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${c.descricao}</td>
-      <td style="font-weight:700;color:${c.tipo.toUpperCase()==='ENTRADA'?'var(--green)':'var(--red)'}">R$ ${c.valor.toFixed(2)}</td>
+      <td style="font-weight:700;color:${/^(ENTRADA|RECEITA|CRÉDITO|CREDITO|\+)$/i.test(c.tipo) ? 'var(--green)' : 'var(--red)'}">R$ ${c.valor.toFixed(2)}</td>
       <td style="font-weight:600;color:var(--gold)">R$ ${c.saldo.toFixed(2)}</td>
     </tr>`).join('');
   }
 
-  mkChart('caixaChart',{type:'bar',data:{labels:caixa.map(c=>c.descricao.split(' ').slice(0,2).join(' ')),datasets:[{label:'Valor',data:caixa.map(c=>c.valor),backgroundColor:caixa.map(c=>c.tipo.toUpperCase()==='ENTRADA'?'#22c55e':'#ef4444'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>'R$'+v}}}}});
+  if (caixa.length > 0) {
+      mkChart('caixaChart',{type:'bar',data:{labels:caixa.map(c=>c.descricao.split(' ').slice(0,2).join(' ')),datasets:[{label:'Valor',data:caixa.map(c=>c.valor),backgroundColor:caixa.map(c=>/^(ENTRADA|RECEITA|CRÉDITO|CREDITO|\+)$/i.test(c.tipo)?'#22c55e':'#ef4444'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>'R$'+v}}}}});
+  }
 
   const ms=[...mens].sort((a,b)=>b.pct-a.pct);
   const mB = document.getElementById('mensBody');
@@ -890,7 +953,9 @@ function renderFinanceiro(caixa, mens, consColab, consEstat) {
   }
 
   const tp=mens.reduce((a,m)=>a+m.total,0), tprev=mens.reduce((a,m)=>a+m.previsto,0);
-  mkChart('mensChart',{type:'bar',data:{labels:['Total pago','Total previsto'],datasets:[{data:[tp,tprev],backgroundColor:['#22c55e','rgba(255,255,255,0.1)'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>'R$'+v}}}}});
+  if (mens.length > 0) {
+      mkChart('mensChart',{type:'bar',data:{labels:['Total pago','Total previsto'],datasets:[{data:[tp,tprev],backgroundColor:['#22c55e','rgba(255,255,255,0.1)'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>'R$'+v}}}}});
+  }
 
   const cC = document.getElementById('consCOlab');
   if (cC) {
