@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard CCDN 129</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f5f5f3;color:#1A1A2E;min-height:100vh}
+.wrap{max-width:960px;margin:0 auto;padding:1.25rem}
+.topbar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap;background:#fff;border-radius:12px;padding:.875rem 1rem;border:.5px solid #e0e0e0}
+.topbar h2{font-size:15px;font-weight:600;color:#1A3557;flex:1;min-width:120px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+select{font-size:12px;padding:5px 8px;border-radius:8px;border:.5px solid #ccc;background:#fff;color:#1A1A2E;cursor:pointer}
+.btn{font-size:12px;padding:5px 10px;border-radius:8px;border:.5px solid #ccc;background:transparent;color:#666;cursor:pointer}
+.btn:hover{background:#f0f0f0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:1rem}
+.kpi{background:#fff;border-radius:8px;padding:10px 12px;border:.5px solid #e0e0e0}
+.kpi-l{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.kpi-v{font-size:22px;font-weight:500;line-height:1}
+.kpi-s{font-size:10px;color:#888;margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.card{background:#fff;border:.5px solid #e0e0e0;border-radius:12px;padding:.875rem 1rem}
+.card-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.bar-label{font-size:11px;color:#1A1A2E;width:110px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:7px;background:#f0f0ee;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.bar-n{font-size:11px;color:#888;width:24px;text-align:right;flex-shrink:0}
+.presenca-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{padding:4px 6px;color:#888;font-weight:400;text-align:center;border-bottom:.5px solid #e0e0e0;white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:4px 6px;text-align:center;border-bottom:.5px solid #f0f0f0}
+td:first-child{text-align:left;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:600;line-height:18px;text-align:center}
+.bP{background:#eaf3de;color:#27500a}
+.bF{background:#fcebeb;color:#791f1f}
+.bJ{background:#faeeda;color:#633806}
+.b_{background:#f0f0f0;color:#888}
+.fin-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:.5px solid #f0f0f0;font-size:12px}
+.fin-row:last-child{border-bottom:none}
+.fin-label{color:#888}.fin-val{font-weight:500}
+.green{color:#27500a}.red{color:#8B1A1A}
+.loading{color:#888;font-size:13px;padding:2rem;text-align:center;background:#fff;border-radius:12px;border:.5px solid #e0e0e0}
+.err{color:#A32D2D;font-size:12px;padding:1rem;background:#fcebeb;border-radius:8px;margin:.5rem 0;line-height:1.5}
+.tag-active{background:#e6f1fb;color:#185FA5;font-size:10px;padding:2px 8px;border-radius:20px;margin-left:6px}
+.footer{text-align:center;font-size:11px;color:#aaa;margin-top:1.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h2>⚔️ CCDN 129 — Dashboard <span id="filter-tag" class="tag-active" style="display:none"></span></h2>
+    <div class="filters">
+      <select id="f-sit" onchange="applyFilters()">
+        <option value="">Situação</option>
+        <option>Regular</option><option>Sênior Regular</option>
+        <option>Irregular</option><option>Inativo</option><option>Não Informado</option>
+      </select>
+      <select id="f-con" onchange="applyFilters()">
+        <option value="">Condição</option>
+        <option>DeMolay Ativo</option><option>Sênior DeMolay</option>
+        <option>Sênior / Maçom</option><option>Maçom</option><option>Não Informado</option>
+      </select>
+      <select id="f-fx" onchange="applyFilters()">
+        <option value="">Faixa etária</option>
+        <option value="< 13">&lt;13</option><option value="13-15">13–15</option>
+        <option value="16-18">16–18</option><option value="19-21">19–21</option>
+        <option value="22+">22+</option>
+      </select>
+      <button class="btn" onclick="clearFilters()">✕ Limpar</button>
+      <button class="btn" onclick="loadData()">↺ Atualizar</button>
+    </div>
+  </div>
+  <div id="content"><div class="loading">Carregando dados da planilha...</div></div>
+  <div class="footer">CCDN 129 · 67ª Gestão · Dados via Google Sheets</div>
+</div>
+
+<script>
+const SID='1ms1p96xE-w1V8yyLtMcqdPdoO3iWyBKybD9c8oM83iw';
+let rawMem=[],rawMens=[],rawCons=[],rawLC=[],rawPres=[];
+
+function gviz(sheet){
+  return `https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheet)}`;
+}
+
+async function fetchSheet(name){
+  const r=await fetch(gviz(name));
+  const txt=await r.text();
+  const m=txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);?\s*$/);
+  if(!m)throw new Error('Resposta inválida. Verifique se a planilha está pública.');
+  const j=JSON.parse(m[1]);
+  const cols=j.table.cols.map(c=>c.label);
+  const rows=(j.table.rows||[]).map(row=>{
+    const o={};
+    cols.forEach((c,i)=>{const cell=row.c?row.c[i]:null;o[c]=cell&&cell.v!==null&&cell.v!==undefined?String(cell.v):'';});
+    return o;
+  });
+  return{cols,rows};
+}
+
+async function loadData(){
+  document.getElementById('content').innerHTML='<div class="loading">↺ Conectando ao Google Sheets...</div>';
+  try{
+    const[m,mn,co,lc,pr]=await Promise.all([
+      fetchSheet('Membros CCDN 129'),
+      fetchSheet('Financeiro — Mensalidades'),
+      fetchSheet('Financeiro — Conselheiros'),
+      fetchSheet('Financeiro — Livro Caixa'),
+      fetchSheet('Chamada — Presença'),
+    ]);
+    rawMem=m.rows.filter(r=>r['ID']&&r['ID'].trim()&&r['NOME']&&r['NOME'].trim());
+    rawMens=mn.rows.filter(r=>r['ID']&&r['ID'].trim());
+    rawCons=co.rows;
+    rawLC=lc.rows.filter(r=>r['DATA']&&r['TIPO']&&r['VALOR']);
+    rawPres=pr.rows.filter(r=>r['ID']&&r['ID'].trim()&&r['NOME']&&r['NOME'].trim());
+    applyFilters();
+  }catch(e){
+    document.getElementById('content').innerHTML=`<div class="err"><strong>Erro ao carregar:</strong> ${e.message}<br><br>Certifique-se de que a planilha está configurada como "Qualquer pessoa com o link pode visualizar".</div>`;
+  }
+}
+
+function clearFilters(){
+  ['f-sit','f-con','f-fx'].forEach(id=>document.getElementById(id).value='');
+  applyFilters();
+}
+
+function applyFilters(){
+  const sit=document.getElementById('f-sit').value;
+  const con=document.getElementById('f-con').value;
+  const fx=document.getElementById('f-fx').value;
+  const tag=document.getElementById('filter-tag');
+  const active=[sit,con,fx].filter(Boolean);
+  if(active.length){tag.textContent=active.join(' · ');tag.style.display='inline';}
+  else tag.style.display='none';
+  const mem=rawMem.filter(r=>{
+    if(sit&&r['SITUAÇÃO']!==sit)return false;
+    if(con&&r['CONDIÇÃO']!==con)return false;
+    if(fx&&r['FAIXA ETÁRIA']!==fx)return false;
+    return true;
+  });
+  const memIDs=new Set(mem.map(m=>m['ID']));
+  const pres=rawPres.filter(r=>memIDs.has(r['ID']));
+  const mens=rawMens.filter(r=>memIDs.has(r['ID']));
+  render(mem,pres,mens);
+}
+
+function parseBRL(s){
+  if(!s)return 0;
+  return parseFloat(s.replace(/[R$\s.]/g,'').replace(',','.'))||0;
+}
+
+function countBy(arr,key){
+  const m={};
+  arr.forEach(r=>{const v=r[key]||'—';m[v]=(m[v]||0)+1;});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+
+const CLR={
+  'Regular':'#639922','Sênior Regular':'#185FA5','Irregular':'#E24B4A','Inativo':'#888780','Não Informado':'#BA7517',
+  'DeMolay Ativo':'#1D9E75','Sênior DeMolay':'#534AB7','Sênior / Maçom':'#378ADD','Maçom':'#D4537E',
+  '< 13':'#1D9E75','13-15':'#185FA5','16-18':'#534AB7','19-21':'#D85A30','22+':'#888780',
+  'Completo':'#639922','Parcial':'#BA7517','Sem contato':'#E24B4A'
+};
+
+function barCard(title,entries,total){
+  return`<div class="card"><div class="card-title">${title}</div>${entries.map(([l,n])=>`
+    <div class="bar-row">
+      <span class="bar-label" title="${l}">${l}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${total?Math.round(n/total*100):0}%;background:${CLR[l]||'#888'}"></div></div>
+      <span class="bar-n">${n}</span>
+    </div>`).join('')}</div>`;
+}
+
+function render(mem,pres,mens){
+  const n=mem.length;
+  const reg=mem.filter(r=>r['SITUAÇÃO']==='Regular').length;
+  const irr=mem.filter(r=>r['SITUAÇÃO']==='Irregular').length;
+  const ativ=mem.filter(r=>r['CONDIÇÃO']==='DeMolay Ativo').length;
+  const sc=mem.filter(r=>r['STATUS CONTATO']==='Sem contato').length;
+  const idMed=(()=>{const v=mem.map(r=>parseInt(r['IDADE']||0)).filter(v=>v>0);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):0;})();
+  const tcMed=(()=>{const v=mem.map(r=>parseInt(r['TEMPO DE CASA']||0)).filter(v=>v>0);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length)+'a':'—';})();
+
+  const presHeader=rawPres.length>0?Object.keys(rawPres[0]):[];
+  const dateCols=presHeader.filter(c=>/^\d{2}\/\d{2}\/\d{4}$/.test(c));
+  const showDates=dateCols.slice(-6);
+
+  const MESES=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  let totalMens=0;
+  mens.forEach(r=>MESES.forEach(m=>{totalMens+=parseBRL(r[m]);}));
+  const pagantes=mens.filter(r=>MESES.some(m=>parseBRL(r[m])>0)).length;
+  const inadim=mens.filter(r=>MESES.every(m=>!parseBRL(r[m]))).length;
+
+  const ent=rawLC.filter(r=>r['TIPO']==='Entrada').reduce((s,r)=>s+parseBRL(r['VALOR']),0);
+  const sai=rawLC.filter(r=>r['TIPO']==='Saída').reduce((s,r)=>s+parseBRL(r['VALOR']),0);
+
+  const collab=rawCons.filter(r=>r['NOME']&&r['STATUS']&&r['VALOR']&&!r['NOME'].includes('TOTAL')&&r['NOME'].trim());
+  const collabPago=collab.filter(r=>r['STATUS']==='Pago').reduce((s,r)=>s+parseBRL(r['VALOR']),0);
+  const collabTotal=collab.reduce((s,r)=>s+parseBRL(r['VALOR']),0);
+
+  document.getElementById('content').innerHTML=`
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-l">Filtrados</div><div class="kpi-v">${n}</div><div class="kpi-s">de ${rawMem.length}</div></div>
+      <div class="kpi"><div class="kpi-l">Regulares</div><div class="kpi-v" style="color:#639922">${reg}</div><div class="kpi-s">${n?Math.round(reg/n*100):0}%</div></div>
+      <div class="kpi"><div class="kpi-l">Irregulares</div><div class="kpi-v" style="color:#E24B4A">${irr}</div><div class="kpi-s">${n?Math.round(irr/n*100):0}%</div></div>
+      <div class="kpi"><div class="kpi-l">DM Ativos</div><div class="kpi-v" style="color:#1D9E75">${ativ}</div><div class="kpi-s">condição</div></div>
+      <div class="kpi"><div class="kpi-l">Sem contato</div><div class="kpi-v" style="color:#E24B4A">${sc}</div><div class="kpi-s">cadastro</div></div>
+      <div class="kpi"><div class="kpi-l">Idade média</div><div class="kpi-v">${idMed}</div><div class="kpi-s">anos</div></div>
+      <div class="kpi"><div class="kpi-l">Casa média</div><div class="kpi-v">${tcMed}</div><div class="kpi-s">tempo</div></div>
+    </div>
+    <div class="grid2">
+      ${barCard('Por situação',countBy(mem,'SITUAÇÃO'),n)}
+      ${barCard('Por condição',countBy(mem,'CONDIÇÃO'),n)}
+    </div>
+    <div class="grid2">
+      ${barCard('Faixa etária',countBy(mem,'FAIXA ETÁRIA'),n)}
+      ${barCard('Status de contato',countBy(mem,'STATUS CONTATO'),n)}
+    </div>
+    <div class="card" style="margin-bottom:.75rem">
+      <div class="card-title">Presenças — últimas ${showDates.length} reuniões${pres.length===0?' · nenhum membro no filtro':''}</div>
+      ${pres.length===0
+        ?'<p style="font-size:12px;color:#888">Nenhum membro da chamada corresponde ao filtro atual.</p>'
+        :`<div class="presenca-wrap"><table>
+        <thead><tr><th>Nome</th>${showDates.map(d=>`<th>${d.slice(0,5)}</th>`).join('')}<th>%</th></tr></thead>
+        <tbody>${pres.map(r=>{
+          const tot=showDates.filter(d=>r[d]&&r[d].trim()).length;
+          const p=showDates.filter(d=>r[d]==='P').length;
+          const j=showDates.filter(d=>r[d]==='J').length;
+          const pct=tot?Math.round((p+j)/tot*100):0;
+          return`<tr><td title="${r['NOME']}">${r['NOME'].split(' ').slice(0,2).join(' ')}</td>
+            ${showDates.map(d=>{const v=r[d]||'';return`<td><span class="badge b${v||'_'}">${v||'·'}</span></td>`;}).join('')}
+            <td style="font-weight:600;color:${pct>=75?'#27500a':pct>=50?'#633806':'#791f1f'}">${pct}%</td></tr>`;
+        }).join('')}</tbody>
+      </table></div>`}
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Mensalidades 2025</div>
+        <div class="fin-row"><span class="fin-label">Total arrecadado</span><span class="fin-val green">R$ ${totalMens.toFixed(2).replace('.',',')}</span></div>
+        <div class="fin-row"><span class="fin-label">Pagantes</span><span class="fin-val green">${pagantes}</span></div>
+        <div class="fin-row"><span class="fin-label">Inadimplentes</span><span class="fin-val red">${inadim}</span></div>
+        <div class="fin-row"><span class="fin-label">% arrecadado</span><span class="fin-val">${mens.length?Math.round(totalMens/(mens.length*180)*100):0}%</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Financeiro — Caixa</div>
+        <div class="fin-row"><span class="fin-label">Entradas</span><span class="fin-val green">R$ ${ent.toFixed(2).replace('.',',')}</span></div>
+        <div class="fin-row"><span class="fin-label">Saídas</span><span class="fin-val red">R$ ${sai.toFixed(2).replace('.',',')}</span></div>
+        <div class="fin-row" style="border-top:.5px solid #ddd;margin-top:4px;padding-top:6px">
+          <span class="fin-label" style="font-weight:600">Saldo</span>
+          <span class="fin-val" style="font-size:15px;color:${(ent-sai)>=0?'#27500a':'#8B1A1A'}">R$ ${(ent-sai).toFixed(2).replace('.',',')}</span>
+        </div>
+        <div class="fin-row" style="margin-top:8px;border-top:.5px solid #f0f0f0;padding-top:6px">
+          <span class="fin-label">Colab. pagos</span><span class="fin-val green">R$ ${collabPago.toFixed(0)}</span>
+        </div>
+        <div class="fin-row"><span class="fin-label">Colab. previsto</span><span class="fin-val" style="color:#888">R$ ${collabTotal.toFixed(0)}</span></div>
+      </div>
+    </div>`;
+}
+
+loadData();
+</script>
+</body>
+</html>
