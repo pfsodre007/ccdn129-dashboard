@@ -626,7 +626,20 @@ function buildFinanceiro(D){
   document.getElementById('cons-resumo').innerHTML=`<div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;"><span style="color:var(--text2)">Arrecadado Colaborativo</span><span style="color:var(--green);font-weight:600">R$ ${collabPago.toFixed(0)}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pcc}%;background:var(--green)"></div></div></div><div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;"><span style="color:var(--text2)">Arrecadado Estatutário</span><span style="color:var(--blue);font-weight:600">R$ ${estatPago.toFixed(0)}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pce}%;background:var(--blue)"></div></div></div><div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;"><span style="color:var(--text2)">Total geral (${pct}% do previsto)</span><span style="color:var(--gold);font-weight:600">R$ ${totalCA.toLocaleString('pt-BR')} / R$ ${totalCP.toLocaleString('pt-BR')}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:var(--gold)"></div></div></div>`;
 }
 
-loadAll();
+// Load Chart.js first, then initialize
+(function() {
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+  s.onload = function() { loadAll(); };
+  s.onerror = function() {
+    // Fallback CDN
+    const s2 = document.createElement('script');
+    s2.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+    s2.onload = function() { loadAll(); };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s);
+})();
 </script>
 </body>
 </html>
