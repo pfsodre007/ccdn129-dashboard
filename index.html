@@ -7,156 +7,98 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg: #0f1117;
-    --bg2: #161b26;
-    --bg3: #1e2535;
-    --bg4: #252d40;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #f0f2f8;
-    --text2: #9aa3be;
-    --text3: #5e6a8a;
-    --gold: #c9a227;
-    --gold2: #e8c048;
-    --gold-bg: rgba(201,162,39,0.12);
-    --blue: #3b82f6;
-    --blue-bg: rgba(59,130,246,0.12);
-    --green: #22c55e;
-    --green-bg: rgba(34,197,94,0.1);
-    --red: #ef4444;
-    --red-bg: rgba(239,68,68,0.1);
-    --amber: #f59e0b;
-    --amber-bg: rgba(245,158,11,0.1);
-    --purple: #8b5cf6;
-    --purple-bg: rgba(139,92,246,0.1);
-    --teal: #14b8a6;
-    --teal-bg: rgba(20,184,166,0.1);
-    --radius: 10px;
-    --radius2: 14px;
+    --bg: #0f1117;--bg2: #161b26;--bg3: #1e2535;--bg4: #252d40;
+    --border: rgba(255,255,255,0.08);--border2: rgba(255,255,255,0.14);
+    --text: #f0f2f8;--text2: #9aa3be;--text3: #5e6a8a;
+    --gold: #c9a227;--gold2: #e8c048;--gold-bg: rgba(201,162,39,0.12);
+    --blue: #3b82f6;--blue-bg: rgba(59,130,246,0.12);
+    --green: #22c55e;--green-bg: rgba(34,197,94,0.1);
+    --red: #ef4444;--red-bg: rgba(239,68,68,0.1);
+    --amber: #f59e0b;--amber-bg: rgba(245,158,11,0.1);
+    --purple: #8b5cf6;--purple-bg: rgba(139,92,246,0.1);
+    --teal: #14b8a6;--teal-bg: rgba(20,184,166,0.1);
+    --radius: 10px;--radius2: 14px;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-  /* HEADER */
-  .header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; align-items: center; gap: 20px; height: 60px; position: sticky; top: 0; z-index: 100; }
-  .header-logo { width: 34px; height: 34px; background: var(--gold-bg); border: 1px solid var(--gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
-  .header-title { font-size: 15px; font-weight: 600; color: var(--text); }
-  .header-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
-  .header-right { margin-left: auto; font-size: 12px; color: var(--text3); }
-  .badge-gestao { background: var(--gold-bg); color: var(--gold); border: 1px solid rgba(201,162,39,0.3); border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
-
-  /* TABS */
-  .tabs { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; gap: 4px; }
-  .tab { padding: 14px 18px; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; user-select: none; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
-
-  /* CONTENT */
-  .tab-content { display: none; padding: 28px; max-width: 1200px; margin: 0 auto; }
-  .tab-content.active { display: block; }
-
-  /* GRID */
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
-  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 24px; }
-  .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 24px; }
-  .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; margin-bottom: 24px; }
-
-  /* METRIC CARDS */
-  .metric { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
-  .metric-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-  .metric-value { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
-  .metric-sub { font-size: 12px; color: var(--text2); margin-top: 6px; }
-  .metric.gold .metric-value { color: var(--gold); }
-  .metric.green .metric-value { color: var(--green); }
-  .metric.blue .metric-value { color: var(--blue); }
-  .metric.red .metric-value { color: var(--red); }
-  .metric.purple .metric-value { color: var(--purple); }
-
-  /* CARDS */
-  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius2); padding: 20px 22px; margin-bottom: 0; }
-  .card-title { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
-  .card-title .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .dot-gold { background: var(--gold); }
-  .dot-blue { background: var(--blue); }
-  .dot-green { background: var(--green); }
-  .dot-purple { background: var(--purple); }
-  .dot-teal { background: var(--teal); }
-  .dot-red { background: var(--red); }
-
-  /* CHARTS */
-  .chart-wrap { position: relative; width: 100%; }
-
-  /* DONUT STATS */
-  .donut-legends { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
-  .dleg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
-  .dleg-sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
-
-  /* TABLE & FILTERS */
-  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th { background: var(--bg3); color: var(--text3); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px 14px; text-align: left; white-space: nowrap; }
-  tbody tr { border-top: 1px solid var(--border); transition: background 0.1s; }
-  tbody tr:hover { background: var(--bg3); }
-  tbody td { padding: 10px 14px; color: var(--text2); white-space: nowrap; vertical-align: middle; }
-  tbody td.primary { color: var(--text); font-weight: 500; }
-  
-  .filter-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius2); padding: 16px 22px; margin-bottom: 24px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-  .filter-panel input, .filter-panel select { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-size: 13px; padding: 9px 14px; outline: none; transition: border-color 0.2s; }
-  .filter-panel input { flex: 1; min-width: 200px; }
-  .filter-panel input::placeholder { color: var(--text3); }
-  .filter-panel input:focus, .filter-panel select:focus { border-color: var(--gold); }
-  .filter-panel select option { background: var(--bg3); }
-
-  /* BADGES */
-  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .badge-regular { background: var(--green-bg); color: var(--green); }
-  .badge-irregular { background: var(--red-bg); color: var(--red); }
-  .badge-senior { background: var(--blue-bg); color: var(--blue); }
-  .badge-inativo { background: var(--bg4); color: var(--text3); }
-  .badge-nao { background: var(--amber-bg); color: var(--amber); }
-  .badge-pago { background: var(--green-bg); color: var(--green); }
-  .badge-pendente { background: var(--red-bg); color: var(--red); }
-  .badge-ativo { background: var(--teal-bg); color: var(--teal); }
-  .badge-macon { background: var(--purple-bg); color: var(--purple); }
-
-  /* PRESENCE GRID */
-  .pres-p { background: var(--green-bg); color: var(--green); border-radius: 4px; font-weight: 700; font-size: 11px; padding: 2px 6px; }
-  .pres-f { background: var(--red-bg); color: var(--red); border-radius: 4px; font-weight: 700; font-size: 11px; padding: 2px 6px; }
-  .pres-j { background: var(--amber-bg); color: var(--amber); border-radius: 4px; font-weight: 700; font-size: 11px; padding: 2px 6px; }
-
-  /* PROGRESS BAR */
-  .prog-bar { height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
-  .prog-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
-
-  /* CAIXA TABLE */
-  .tipo-entrada { color: var(--green); font-weight: 600; }
-  .tipo-saida { color: var(--red); font-weight: 600; }
-
-  /* PAGINATION */
-  .pagination { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-top: 14px; font-size: 13px; color: var(--text2); }
-  .page-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; color: var(--text2); padding: 5px 12px; cursor: pointer; font-size: 12px; transition: background 0.1s; }
-  .page-btn:hover { background: var(--bg4); color: var(--text); }
-  .page-btn:disabled { opacity: 0.3; cursor: default; }
-
-  /* OTHERS */
-  .section-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px; margin-top: 4px; }
-  .cons-list { display: flex; flex-direction: column; gap: 2px; }
-  .cons-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 7px; background: var(--bg3); }
-  .cons-name { font-size: 13px; color: var(--text); }
-  .cons-right { display: flex; align-items: center; gap: 10px; }
-  .cons-valor { font-size: 12px; color: var(--text3); }
-  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--bg3); border-radius: 8px; margin-top: 12px; }
-  .summary-row .label { font-size: 12px; color: var(--text2); }
-  .summary-row .value { font-size: 14px; font-weight: 700; color: var(--gold); }
-
-  @media (max-width: 768px) {
-    .grid-4, .grid-3 { grid-template-columns: repeat(2, 1fr); }
-    .grid-2, .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
-    .tabs { overflow-x: auto; }
-    .tab-content { padding: 16px; }
-    .header { padding: 0 16px; }
-  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  .header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;gap:20px;height:60px;position:sticky;top:0;z-index:100}
+  .header-logo{width:34px;height:34px;background:var(--gold-bg);border:1px solid var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--gold);flex-shrink:0}
+  .header-title{font-size:15px;font-weight:600;color:var(--text)}
+  .header-sub{font-size:12px;color:var(--text3);margin-top:1px}
+  .header-right{margin-left:auto;font-size:12px;color:var(--text3)}
+  .badge-gestao{background:var(--gold-bg);color:var(--gold);border:1px solid rgba(201,162,39,0.3);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600}
+  .tabs{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:4px}
+  .tab{padding:14px 18px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;user-select:none}
+  .tab:hover{color:var(--text)}
+  .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .tab-content{display:none;padding:28px;max-width:1200px;margin:0 auto}
+  .tab-content.active{display:block}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px}
+  .grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:24px}
+  .metric{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+  .metric-label{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+  .metric-value{font-size:28px;font-weight:700;color:var(--text);line-height:1}
+  .metric-sub{font-size:12px;color:var(--text2);margin-top:6px}
+  .metric.gold .metric-value{color:var(--gold)}
+  .metric.green .metric-value{color:var(--green)}
+  .metric.blue .metric-value{color:var(--blue)}
+  .metric.red .metric-value{color:var(--red)}
+  .metric.purple .metric-value{color:var(--purple)}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:20px 22px;margin-bottom:0}
+  .card-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+  .card-title .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .dot-gold{background:var(--gold)}.dot-blue{background:var(--blue)}.dot-green{background:var(--green)}
+  .dot-purple{background:var(--purple)}.dot-teal{background:var(--teal)}.dot-red{background:var(--red)}
+  .chart-wrap{position:relative;width:100%}
+  .donut-legends{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px}
+  .dleg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+  .dleg-sq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{background:var(--bg3);color:var(--text3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;text-align:left;white-space:nowrap}
+  tbody tr{border-top:1px solid var(--border);transition:background .1s}
+  tbody tr:hover{background:var(--bg3)}
+  tbody td{padding:10px 14px;color:var(--text2);white-space:nowrap;vertical-align:middle}
+  tbody td.primary{color:var(--text);font-weight:500}
+  .filter-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:16px 22px;margin-bottom:24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .filter-panel input,.filter-panel select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:9px 14px;outline:none;transition:border-color .2s}
+  .filter-panel input{flex:1;min-width:200px}
+  .filter-panel input::placeholder{color:var(--text3)}
+  .filter-panel input:focus,.filter-panel select:focus{border-color:var(--gold)}
+  .filter-panel select option{background:var(--bg3)}
+  .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+  .badge-regular{background:var(--green-bg);color:var(--green)}
+  .badge-irregular{background:var(--red-bg);color:var(--red)}
+  .badge-senior{background:var(--blue-bg);color:var(--blue)}
+  .badge-inativo{background:var(--bg4);color:var(--text3)}
+  .badge-nao{background:var(--amber-bg);color:var(--amber)}
+  .badge-pago{background:var(--green-bg);color:var(--green)}
+  .badge-pendente{background:var(--red-bg);color:var(--red)}
+  .badge-ativo{background:var(--teal-bg);color:var(--teal)}
+  .badge-macon{background:var(--purple-bg);color:var(--purple)}
+  .pres-p{background:var(--green-bg);color:var(--green);border-radius:4px;font-weight:700;font-size:11px;padding:2px 6px}
+  .pres-f{background:var(--red-bg);color:var(--red);border-radius:4px;font-weight:700;font-size:11px;padding:2px 6px}
+  .pres-j{background:var(--amber-bg);color:var(--amber);border-radius:4px;font-weight:700;font-size:11px;padding:2px 6px}
+  .prog-bar{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+  .prog-fill{height:100%;border-radius:3px;transition:width .4s}
+  .tipo-entrada{color:var(--green);font-weight:600}
+  .tipo-saida{color:var(--red);font-weight:600}
+  .pagination{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:14px;font-size:13px;color:var(--text2)}
+  .page-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 12px;cursor:pointer;font-size:12px;transition:background .1s}
+  .page-btn:hover{background:var(--bg4);color:var(--text)}
+  .page-btn:disabled{opacity:.3;cursor:default}
+  .section-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;margin-top:4px}
+  .cons-list{display:flex;flex-direction:column;gap:2px}
+  .cons-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:7px;background:var(--bg3)}
+  .cons-name{font-size:13px;color:var(--text)}
+  .cons-right{display:flex;align-items:center;gap:10px}
+  .cons-valor{font-size:12px;color:var(--text3)}
+  .summary-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg3);border-radius:8px;margin-top:12px}
+  .summary-row .label{font-size:12px;color:var(--text2)}
+  .summary-row .value{font-size:14px;font-weight:700;color:var(--gold)}
+  @media(max-width:768px){.grid-4,.grid-3{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-2-1{grid-template-columns:1fr}.tabs{overflow-x:auto}.tab-content{padding:16px}.header{padding:0 16px}}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -193,12 +135,10 @@
   <div class="tab" onclick="switchTab(2)">💰 Financeiro</div>
 </div>
 
-<!-- ============================================================ TAB 1: MEMBROS ============================================================ -->
+<!-- TAB 1: MEMBROS -->
 <div id="tab0" class="tab-content active">
-
-  <!-- PAINEL DE FILTROS GLOBAIS -->
   <div class="filter-panel">
-    <div style="font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 8px;">Filtros:</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-right:8px">Filtros:</div>
     <input type="text" id="searchInput" placeholder="Buscar por nome..." oninput="applyFilters()">
     <select id="filterCondicao" onchange="applyFilters()">
       <option value="">Todas as condições</option>
@@ -215,786 +155,485 @@
       <option value="Inativo">Inativo</option>
     </select>
   </div>
-
   <div class="grid-4">
-    <div class="metric gold">
-      <div class="metric-label">Total filtrado</div>
-      <div class="metric-value" id="met-total">—</div>
-      <div class="metric-sub">De acordo com o filtro</div>
-    </div>
-    <div class="metric blue">
-      <div class="metric-label">DeMolays Ativos</div>
-      <div class="metric-value" id="met-dm">—</div>
-      <div class="metric-sub">Em atividade</div>
-    </div>
-    <div class="metric purple">
-      <div class="metric-label">Seniores</div>
-      <div class="metric-value" id="met-sen">—</div>
-      <div class="metric-sub">Sênior DeMolay</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Maçons</div>
-      <div class="metric-value" style="color:var(--teal)" id="met-mac">—</div>
-      <div class="metric-sub">Maçom + Sênior/Maçom</div>
-    </div>
+    <div class="metric gold"><div class="metric-label">Total filtrado</div><div class="metric-value" id="met-total">—</div><div class="metric-sub">De acordo com o filtro</div></div>
+    <div class="metric blue"><div class="metric-label">DeMolays Ativos</div><div class="metric-value" id="met-dm">—</div><div class="metric-sub">Em atividade</div></div>
+    <div class="metric purple"><div class="metric-label">Seniores</div><div class="metric-value" id="met-sen">—</div><div class="metric-sub">Sênior DeMolay</div></div>
+    <div class="metric"><div class="metric-label">Maçons</div><div class="metric-value" style="color:var(--teal)" id="met-mac">—</div><div class="metric-sub">Maçom + Sênior/Maçom</div></div>
   </div>
-
   <div class="grid-4">
-    <div class="metric green">
-      <div class="metric-label">Regular</div>
-      <div class="metric-value" id="met-reg">—</div>
-      <div class="metric-sub">DeMolays regulares</div>
-    </div>
-    <div class="metric red">
-      <div class="metric-label">Irregular</div>
-      <div class="metric-value" id="met-irr">—</div>
-      <div class="metric-sub">Atenção necessária</div>
-    </div>
-    <div class="metric blue">
-      <div class="metric-label">Sênior Regular</div>
-      <div class="metric-value" id="met-senreg">—</div>
-      <div class="metric-sub">Situação regular</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Idade média</div>
-      <div class="metric-value" style="color:var(--amber)" id="met-idmed">—</div>
-      <div class="metric-sub" id="met-idsub">—</div>
-    </div>
+    <div class="metric green"><div class="metric-label">Regular</div><div class="metric-value" id="met-reg">—</div><div class="metric-sub">DeMolays regulares</div></div>
+    <div class="metric red"><div class="metric-label">Irregular</div><div class="metric-value" id="met-irr">—</div><div class="metric-sub">Atenção necessária</div></div>
+    <div class="metric blue"><div class="metric-label">Sênior Regular</div><div class="metric-value" id="met-senreg">—</div><div class="metric-sub">Situação regular</div></div>
+    <div class="metric"><div class="metric-label">Idade média</div><div class="metric-value" style="color:var(--amber)" id="met-idmed">—</div><div class="metric-sub" id="met-idsub">—</div></div>
   </div>
-
   <div class="grid-2">
-    <div class="card">
-      <div class="card-title"><span class="dot dot-gold"></span>Iniciações por Semestre (2016–2026)</div>
-      <div class="chart-wrap" style="height: 320px;">
-        <canvas id="inicChart"></canvas>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title"><span class="dot dot-blue"></span>Elevações por Semestre (2016–2026)</div>
-      <div class="chart-wrap" style="height: 320px;">
-        <canvas id="demoChart"></canvas>
-      </div>
-    </div>
+    <div class="card"><div class="card-title"><span class="dot dot-gold"></span>Iniciações por Semestre (2016–2026)</div><div class="chart-wrap" style="height:320px"><canvas id="inicChart"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot dot-blue"></span>Elevações por Semestre (2016–2026)</div><div class="chart-wrap" style="height:320px"><canvas id="demoChart"></canvas></div></div>
   </div>
-
   <div class="grid-3">
-    <div class="card">
-      <div class="card-title"><span class="dot dot-gold"></span>Condição dos membros</div>
-      <div class="chart-wrap" style="height: 200px;">
-        <canvas id="condicaoChart"></canvas>
-      </div>
-      <div class="donut-legends" id="condicaoLeg"></div>
-    </div>
-    <div class="card">
-      <div class="card-title"><span class="dot dot-purple"></span>Situação dos membros</div>
-      <div class="chart-wrap" style="height: 200px;">
-        <canvas id="situacaoChart"></canvas>
-      </div>
-      <div class="donut-legends" id="situacaoLeg"></div>
-    </div>
-    <div class="card">
-      <div class="card-title"><span class="dot dot-teal"></span>Distribuição por condição</div>
-      <div id="cond-dist" style="display:flex;flex-direction:column;gap:14px;margin-top:4px;"></div>
-    </div>
+    <div class="card"><div class="card-title"><span class="dot dot-gold"></span>Condição dos membros</div><div class="chart-wrap" style="height:200px"><canvas id="condicaoChart"></canvas></div><div class="donut-legends" id="condicaoLeg"></div></div>
+    <div class="card"><div class="card-title"><span class="dot dot-purple"></span>Situação dos membros</div><div class="chart-wrap" style="height:200px"><canvas id="situacaoChart"></canvas></div><div class="donut-legends" id="situacaoLeg"></div></div>
+    <div class="card"><div class="card-title"><span class="dot dot-teal"></span>Distribuição por condição</div><div id="cond-dist" style="display:flex;flex-direction:column;gap:14px;margin-top:4px"></div></div>
   </div>
-
-  <!-- Members Table -->
   <div class="section-title">Diretório resultante</div>
   <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Nome</th>
-          <th>Condição</th>
-          <th>Situação</th>
-          <th>Nascimento</th>
-          <th>Idade</th>
-          <th>Iniciação</th>
-          <th>Anuidade</th>
-          <th>Cargo</th>
-        </tr>
-      </thead>
-      <tbody id="membrosBody"></tbody>
-    </table>
+    <table><thead><tr><th>#</th><th>Nome</th><th>Condição</th><th>Situação</th><th>Nascimento</th><th>Idade</th><th>Iniciação</th><th>Anuidade</th><th>Cargo</th></tr></thead><tbody id="membrosBody"></tbody></table>
   </div>
-  <div class="pagination">
-    <span id="pageInfo"></span>
-    <button class="page-btn" id="prevBtn" onclick="changePage(-1)">← Anterior</button>
-    <button class="page-btn" id="nextBtn" onclick="changePage(1)">Próxima →</button>
-  </div>
+  <div class="pagination"><span id="pageInfo"></span><button class="page-btn" id="prevBtn" onclick="changePage(-1)">← Anterior</button><button class="page-btn" id="nextBtn" onclick="changePage(1)">Próxima →</button></div>
 </div>
 
-<!-- ============================================================ TAB 2: PRESENÇA ============================================================ -->
+<!-- TAB 2: PRESENÇA -->
 <div id="tab1" class="tab-content">
   <div class="grid-4" id="presMetrics"></div>
   <div class="grid-2">
-    <div class="card">
-      <div class="card-title"><span class="dot dot-blue"></span>Frequência por membro — S1/2026</div>
-      <div class="chart-wrap" style="height: 520px;">
-        <canvas id="presBarChart"></canvas>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title"><span class="dot dot-green"></span>Grid de presenças por reunião</div>
-      <div id="presGridWrap" style="overflow-x: auto;"></div>
-    </div>
+    <div class="card"><div class="card-title"><span class="dot dot-blue"></span>Frequência por membro — S1/2026</div><div class="chart-wrap" style="height:520px"><canvas id="presBarChart"></canvas></div></div>
+    <div class="card"><div class="card-title"><span class="dot dot-green"></span>Grid de presenças por reunião</div><div id="presGridWrap" style="overflow-x:auto"></div></div>
   </div>
   <div class="card">
     <div class="card-title"><span class="dot dot-teal"></span>Tabela detalhada de presença — S1/2026</div>
-    <div class="table-wrap" style="margin-top: 4px;">
-      <table>
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Cargo</th>
-            <th>Idade</th>
-            <th>Presentes (P)</th>
-            <th>Faltas (F)</th>
-            <th>Justificadas (J)</th>
-            <th>Frequência</th>
-          </tr>
-        </thead>
-        <tbody id="presBody"></tbody>
-      </table>
+    <div class="table-wrap" style="margin-top:4px">
+      <table><thead><tr><th>Nome</th><th>Cargo</th><th>Idade</th><th>Presentes (P)</th><th>Faltas (F)</th><th>Justificadas (J)</th><th>Frequência</th></tr></thead><tbody id="presBody"></tbody></table>
     </div>
   </div>
 </div>
 
-<!-- ============================================================ TAB 3: FINANCEIRO ============================================================ -->
+<!-- TAB 3: FINANCEIRO -->
 <div id="tab2" class="tab-content">
   <div class="grid-4">
-    <div class="metric gold">
-      <div class="metric-label">Saldo atual</div>
-      <div class="metric-value" id="fin-saldo">—</div>
-      <div class="metric-sub" id="fin-saldo-sub">—</div>
-    </div>
-    <div class="metric green">
-      <div class="metric-label">Total entradas</div>
-      <div class="metric-value" id="fin-ent">—</div>
-      <div class="metric-sub">S1/2026 — mensalidades + anuidade</div>
-    </div>
-    <div class="metric red">
-      <div class="metric-label">Total saídas</div>
-      <div class="metric-value" id="fin-sai">—</div>
-      <div class="metric-sub">S1/2026 — despesas</div>
-    </div>
-    <div class="metric blue">
-      <div class="metric-label">Arrecadado conselheiros</div>
-      <div class="metric-value" id="fin-cons">—</div>
-      <div class="metric-sub" id="fin-cons-sub">—</div>
-    </div>
+    <div class="metric gold"><div class="metric-label">Saldo atual</div><div class="metric-value" id="fin-saldo">—</div><div class="metric-sub" id="fin-saldo-sub">Última linha do Livro Caixa</div></div>
+    <div class="metric green"><div class="metric-label">Total entradas S1/2026</div><div class="metric-value" id="fin-ent">—</div><div class="metric-sub">Anuidades + mensalidades + rendimentos</div></div>
+    <div class="metric red"><div class="metric-label">Total saídas S1/2026</div><div class="metric-value" id="fin-sai">—</div><div class="metric-sub">Eventos, alimentação, filantropia</div></div>
+    <div class="metric blue"><div class="metric-label">Arrecadado conselheiros</div><div class="metric-value" id="fin-cons">—</div><div class="metric-sub" id="fin-cons-sub">Colaborativo + Estatutário</div></div>
   </div>
-
   <div class="grid-2">
     <div class="card">
       <div class="card-title"><span class="dot dot-gold"></span>Livro Caixa — S1/2026</div>
-      <div class="table-wrap" style="margin-top:4px;">
-        <table>
-          <thead>
-            <tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Saldo</th></tr>
-          </thead>
-          <tbody id="caixaBody"></tbody>
-        </table>
+      <div class="table-wrap" style="margin-top:4px;max-height:460px;overflow-y:auto">
+        <table><thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Saldo</th></tr></thead><tbody id="caixaBody"></tbody></table>
       </div>
-      <div style="margin-top: 16px;">
-        <div class="chart-wrap" style="height: 200px;">
-          <canvas id="caixaChart"></canvas>
-        </div>
-      </div>
+      <div style="margin-top:16px"><div class="chart-wrap" style="height:200px"><canvas id="caixaChart"></canvas></div></div>
     </div>
-
     <div class="card">
-      <div class="card-title"><span class="dot dot-blue"></span>Mensalidades — DeMolays 2025</div>
-      <div class="table-wrap" style="margin-top:4px; max-height: 340px; overflow-y: auto;">
-        <table>
-          <thead>
-            <tr><th>Nome</th><th>Total Pago</th><th>Previsto</th><th>%</th></tr>
-          </thead>
-          <tbody id="mensBody"></tbody>
-        </table>
+      <div class="card-title"><span class="dot dot-blue"></span>Mensalidades — DeMolays 2026</div>
+      <div class="table-wrap" style="margin-top:4px;max-height:340px;overflow-y:auto">
+        <table><thead><tr><th>Nome</th><th>Total Pago</th><th>Previsto</th><th>%</th></tr></thead><tbody id="mensBody"></tbody></table>
       </div>
-      <div style="margin-top: 16px;">
-        <div class="chart-wrap" style="height: 160px;">
-          <canvas id="mensChart"></canvas>
-        </div>
-      </div>
+      <div style="margin-top:16px"><div class="chart-wrap" style="height:160px"><canvas id="mensChart"></canvas></div></div>
     </div>
   </div>
-
   <div class="grid-2">
     <div class="card">
-      <div class="card-title"><span class="dot dot-purple"></span>Conselho Colaborativo — Anuidade S1/2025</div>
+      <div class="card-title"><span class="dot dot-purple"></span>Conselho Colaborativo — Anuidade S1/2026</div>
       <div class="cons-list" id="consCOlab"></div>
-      <div class="summary-row">
-        <span class="label">Arrecadado / Previsto</span>
-        <span class="value" id="colabSummary"></span>
-      </div>
+      <div class="summary-row"><span class="label">Arrecadado / Previsto</span><span class="value" id="colabSummary"></span></div>
     </div>
-
     <div class="card">
-      <div class="card-title"><span class="dot dot-teal"></span>Conselho Estatutário — Anuidade S1/2025</div>
+      <div class="card-title"><span class="dot dot-teal"></span>Conselho Estatutário — Anuidade S1/2026</div>
       <div class="cons-list" id="consEstat"></div>
-      <div class="summary-row">
-        <span class="label">Arrecadado / Previsto</span>
-        <span class="value" id="estatSummary"></span>
+      <div class="summary-row"><span class="label">Arrecadado / Previsto</span><span class="value" id="estatSummary"></span></div>
+      <div style="margin-top:20px">
+        <div class="card-title" style="margin-bottom:12px"><span class="dot dot-gold"></span>Resumo geral conselheiros</div>
+        <div id="cons-resumo" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
-      <div style="margin-top:20px;"><div class="card-title" style="margin-bottom:12px;"><span class="dot dot-gold"></span>Resumo geral conselheiros</div><div id="cons-resumo" style="display:flex;flex-direction:column;gap:10px;"></div></div>
     </div>
   </div>
 </div>
 
 <script>
-/* ==========================================================
-   CCDN 129 — Dashboard Dinâmico  |  Google Sheets via gviz
-   ========================================================== */
 const SID = '1ms1p96xE-w1V8yyLtMcqdPdoO3iWyBKybD9c8oM83iw';
-let _allM = [], _filtM = [], _page = 1; 
-const PG = 20;
-const _charts = {};
+let _allM = [], _filtM = [], _page = 1;
+const PG = 20, _charts = {};
 
 function gviz(sheet) {
   return 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(sheet);
 }
 
 function parseBRL(s) {
-  if (!s) return 0;
+  if (s === null || s === undefined) return 0;
   s = String(s).trim();
-  if (/^\d+\.\d+$/.test(s)) return parseFloat(s) || 0;
-  if (/^\d+$/.test(s)) return parseFloat(s) || 0;
-  return parseFloat(s.replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.')) || 0;
+  if (!s) return 0;
+  // Remove R$, spaces, then handle Brazilian number format
+  s = s.replace(/R\$\s*/g,'').replace(/\s/g,'');
+  if (!s) return 0;
+  // If already looks like a plain float
+  if (/^-?\d+\.\d+$/.test(s)) return parseFloat(s) || 0;
+  if (/^-?\d+$/.test(s)) return parseFloat(s) || 0;
+  // Brazilian: 1.234,56 → remove dots, replace comma
+  return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
 }
 
-// ARQUITETURA DE LEITURA POSICIONAL (FUZZY MATCHING)
+// Normaliza tipo: aceita Entrada/Saída com qualquer case
+function isEntrada(t) { return /^entrada$/i.test(String(t||'').trim()); }
+function isSaida(t)   { return /^sa[íi]da$/i.test(String(t||'').trim()); }
+
 async function fetchSheet(name) {
-  try {
-    const r = await fetch(gviz(name));
-    if (!r.ok) throw new Error(`Falha na rede: HTTP ${r.status}`);
-    const txt = await r.text();
-    
-    const idx = txt.indexOf('setResponse(');
-    if (idx === -1) throw new Error(`A aba "${name}" não foi encontrada.`);
-    
-    const jsonStart = txt.indexOf('{', idx);
-    const jsonEnd = txt.lastIndexOf('}');
-    const j = JSON.parse(txt.substring(jsonStart, jsonEnd + 1));
-    
-    if (j.status === 'error') throw new Error(`Erro do Google na aba "${name}": ${j.errors[0].message}`);
-    
-    let rawCols = (j.table.cols || []).map(c => c && c.label ? String(c.label).trim() : '');
-    let rawRows = j.table.rows || [];
-    
-    // Tratativa especial para o Google Sheets (se ele esconder o cabeçalho nos dados)
-    if (rawRows.length > 0) {
-      const row0 = rawRows[0].c || [];
-      const firstRowVals = row0.map(cell => cell && cell.v !== null ? String(cell.v).trim() : '');
-      if (firstRowVals.some(v => /^(NOME|ID|DATA|STATUS|TIPO|JAN|FEV|VALOR|CATEGORIA|DESCRIÇÃO|SALDO|PREVISTO|SITUAÇÃO)$/i.test(v))) {
-         rawCols = firstRowVals;
-         rawRows.shift(); 
-      }
+  const r = await fetch(gviz(name));
+  if (!r.ok) throw new Error(`HTTP ${r.status} ao buscar "${name}"`);
+  const txt = await r.text();
+  const idx = txt.indexOf('setResponse(');
+  if (idx === -1) throw new Error(`Aba "${name}" não encontrada`);
+  const j = JSON.parse(txt.substring(txt.indexOf('{',idx), txt.lastIndexOf('}')+1));
+  if (j.status === 'error') throw new Error(`Erro Google na aba "${name}": ${j.errors[0].message}`);
+
+  let rawCols = (j.table.cols||[]).map(c => c&&c.label ? String(c.label).trim() : '');
+  let rawRows = j.table.rows||[];
+
+  // Se primeira linha de dados contém cabeçalhos, promover
+  if (rawRows.length > 0) {
+    const r0 = (rawRows[0].c||[]).map(cell => cell&&cell.v!==null ? String(cell.v).trim() : '');
+    if (r0.some(v => /^(NOME|ID|DATA|STATUS|TIPO|JAN|FEV|VALOR|CATEGORIA|DESCRIÇÃO|SALDO|PREVISTO|SITUAÇÃO|GESTÃO)$/i.test(v))) {
+      rawCols = r0; rawRows.shift();
     }
-
-    // Mapeamento à prova de balas
-    const cols = [];
-    const seen = new Set();
-    rawCols.forEach((c, i) => {
-       let colName = c ? c.toUpperCase() : `COL_${i}`;
-       if (seen.has(colName)) {
-           let counter = 2;
-           while (seen.has(`${colName}_${counter}`)) counter++;
-           colName = `${colName}_${counter}`;
-       }
-       seen.add(colName);
-       cols.push(colName);
-    });
-
-    // Anexando os dados puros (_cells) para resgate posicional
-    const rows = rawRows.map(row => {
-      const o = {};
-      const cells = [];
-      const maxCols = Math.max(cols.length, row.c ? row.c.length : 0, 20); // Garante tamanho mínimo
-      for (let i = 0; i < maxCols; i++) {
-        const cell = row.c && row.c[i] ? row.c[i] : null;
-        const val = (cell && cell.f !== undefined && cell.f !== null) ? cell.f : 
-                    (cell && cell.v !== null && cell.v !== undefined) ? cell.v : '';
-        const strVal = val !== null && val !== undefined ? String(val).trim() : '';
-        cells.push(strVal);
-        if (cols[i]) o[cols[i]] = strVal;
-      }
-      o._cells = cells;
-      return o;
-    });
-    
-    return { cols, rows };
-  } catch (err) {
-    throw new Error(err.message);
   }
+
+  const cols = [], seen = new Set();
+  rawCols.forEach((c,i)=>{
+    let n = c ? c.toUpperCase() : `COL_${i}`;
+    if (seen.has(n)) { let k=2; while(seen.has(`${n}_${k}`))k++; n=`${n}_${k}`; }
+    seen.add(n); cols.push(n);
+  });
+
+  const rows = rawRows.map(row => {
+    const o={}, cells=[];
+    const max = Math.max(cols.length, row.c ? row.c.length : 0, 26);
+    for(let i=0;i<max;i++){
+      const cell = row.c&&row.c[i] ? row.c[i] : null;
+      const val = (cell&&cell.f!=null) ? cell.f : (cell&&cell.v!=null) ? cell.v : '';
+      const sv = val!==null&&val!==undefined ? String(val).trim() : '';
+      cells.push(sv);
+      if(cols[i]) o[cols[i]] = sv;
+    }
+    o._cells = cells;
+    return o;
+  });
+  return { cols, rows };
 }
 
-function showLoading(v) {
-  const overlay = document.getElementById('loading-overlay');
-  if (!overlay) return;
-  if (v) {
-    overlay.style.display = 'flex';
-    document.getElementById('spinner').style.display = 'block';
-    document.getElementById('loading-text').style.display = 'block';
-    document.getElementById('loading-sub').style.display = 'block';
-    document.getElementById('error-box').style.display = 'none';
-  } else {
-    overlay.style.display = 'none';
-  }
+function showLoading(v){
+  const el=document.getElementById('loading-overlay');
+  if(!el)return;
+  if(v){el.style.display='flex';document.getElementById('spinner').style.display='block';document.getElementById('loading-text').style.display='block';document.getElementById('loading-sub').style.display='block';document.getElementById('error-box').style.display='none';}
+  else{el.style.display='none';}
 }
-
-function showError(msg) {
-  document.getElementById('spinner').style.display = 'none';
-  document.getElementById('loading-text').style.display = 'none';
-  document.getElementById('loading-sub').style.display = 'none';
-  document.getElementById('error-message').textContent = msg;
-  document.getElementById('error-box').style.display = 'block';
+function showError(msg){
+  document.getElementById('spinner').style.display='none';
+  document.getElementById('loading-text').style.display='none';
+  document.getElementById('loading-sub').style.display='none';
+  document.getElementById('error-message').textContent=msg;
+  document.getElementById('error-box').style.display='block';
 }
-
-function mkChart(id, config) {
-  if (typeof Chart === 'undefined') throw new Error("A biblioteca Chart.js não carregou.");
-  if (_charts[id]) { _charts[id].destroy(); }
-  const ctx = document.getElementById(id);
-  if (!ctx) return null;
-  _charts[id] = new Chart(ctx, config);
+function mkChart(id,config){
+  if(typeof Chart==='undefined') return null;
+  if(_charts[id]){try{_charts[id].destroy();}catch(e){}}
+  const ctx=document.getElementById(id);
+  if(!ctx) return null;
+  _charts[id]=new Chart(ctx,config);
   return _charts[id];
 }
 
-/* ========================================================== LOAD */
-async function reloadData() {
+async function reloadData(){
   showLoading(true);
-  Object.keys(_charts).forEach(k => { try { _charts[k].destroy(); } catch(e){} delete _charts[k]; });
-  
+  Object.keys(_charts).forEach(k=>{try{_charts[k].destroy();}catch(e){} delete _charts[k];});
   try {
     const [mem, mens, cons, lc, pres] = await Promise.all([
       fetchSheet('Membros CCDN 129'),
-      fetchSheet('Financeiro \u2014 Mensalidades'),
-      fetchSheet('Financeiro \u2014 Conselheiros'),
-      fetchSheet('Financeiro \u2014 Livro Caixa'),
-      fetchSheet('Chamada \u2014 Presen\u00e7a')
+      fetchSheet('Financeiro — Mensalidades'),
+      fetchSheet('Financeiro — Conselheiros'),
+      fetchSheet('Financeiro — Livro Caixa'),
+      fetchSheet('Chamada — Presença')
     ]);
 
-    // ================= MEMBROS =================
+    // ── MEMBROS ──────────────────────────────────────────────────────
     _allM = mem.rows
       .filter(r => r['ID'] && /^\d+$/.test(r['ID']) && r['NOME'])
       .map(r => ({
-        nome: r['NOME'], condicao: r['CONDIÇÃO'] || '', situacao: r['SITUAÇÃO'] || '',
-        nascimento: r['NASCIMENTO'] || '', idade: parseInt(r['IDADE']) || 0,
-        iniciacao: r['INICIAÇÃO'] || '', anuidade: r['ANUIDADE DEMOLAY'] || '',
-        cargo: r['CARGO CAPÍTULO'] || ''
+        nome:r['NOME'], condicao:r['CONDIÇÃO']||'', situacao:r['SITUAÇÃO']||'',
+        nascimento:r['NASCIMENTO']||'', idade:parseInt(r['IDADE'])||0,
+        iniciacao:r['INICIAÇÃO']||'', anuidade:r['ANUIDADE DEMOLAY']||'',
+        cargo:r['CARGO CAPÍTULO']||''
       }));
 
-    // ================= PRESENÇA =================
+    // ── PRESENÇA ─────────────────────────────────────────────────────
     const knownPres = new Set(['ID','NOME','IDADE','CARGO','GESTÃO','P','F','J','%','← DATA','']);
     const dateCols = pres.cols.filter(c => c && !knownPres.has(c) && (c.includes('/') || c.startsWith('COL_')));
-    
     const presence = pres.rows
       .filter(r => r['ID'] && /^\d+$/.test(r['ID']) && r['NOME'])
       .map(r => {
-        const reunioes = {};
-        dateCols.forEach(d => { if (r[d]) reunioes[d] = r[d]; });
-        const p = dateCols.filter(d => r[d].toUpperCase() === 'P').length;
-        const f = dateCols.filter(d => r[d].toUpperCase() === 'F').length;
-        const j = dateCols.filter(d => r[d].toUpperCase() === 'J').length;
-        const tot = dateCols.filter(d => r[d]).length;
-        return { id: +r['ID'], nome: r['NOME'], idade: +r['IDADE']||0, cargo: r['CARGO']||'',
-                 p, f, j, pct: tot ? Math.round((p+j)/tot*100) : 0, reunioes };
+        const reunioes={};
+        dateCols.forEach(d=>{if(r[d])reunioes[d]=r[d];});
+        const p=dateCols.filter(d=>r[d].toUpperCase()==='P').length;
+        const f=dateCols.filter(d=>r[d].toUpperCase()==='F').length;
+        const j=dateCols.filter(d=>r[d].toUpperCase()==='J').length;
+        const tot=dateCols.filter(d=>r[d]).length;
+        return {id:+r['ID'],nome:r['NOME'],idade:+r['IDADE']||0,cargo:r['CARGO']||'',p,f,j,pct:tot?Math.round((p+j)/tot*100):0,reunioes};
       });
 
-    // ================= MENSALIDADES (FUZZY) =================
-    let cNomeM = -1, cPrevM = -1;
-    const cMeses = {};
+    // ── MENSALIDADES ─────────────────────────────────────────────────
+    // Estrutura da aba: A=ID, B=NOME (VLOOKUP — pode vir vazio no gviz), C..N=meses, O=TOTAL, P=PREVISTO, Q=%
+    // colunas: cols[0]=ID, cols[1]=NOME, cols[2..13]=JAN..DEZ, cols[14]=TOTAL PAGO, cols[15]=PREVISTO, cols[16]=%
     const MESES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-
-    mens.cols.forEach((c, i) => {
-       const up = c.toUpperCase();
-       if (up.includes('NOME') || up.includes('DEMOLAY')) cNomeM = i;
-       if (up.includes('PREVISTO') || up.includes('TOTAL')) cPrevM = i;
-       MESES.forEach(m => { if (up === m || up.includes(m)) cMeses[m] = i; });
-    });
-    if (cNomeM === -1) cNomeM = 0; // Fallback caso o cabeçalho desapareça
-
     const mensalidades = mens.rows
-      .map(r => {
-         const nome = r._cells[cNomeM];
-         const meses = {};
-         let total = 0;
-         MESES.forEach((m, idx) => {
-            const colIdx = cMeses[m] !== undefined ? cMeses[m] : (idx + 1); // Fallback: Jan = Col 1, Fev = Col 2...
-            const val = parseBRL(r._cells[colIdx]);
-            meses[m] = val;
-            total += val;
-         });
-         const previsto = cPrevM !== -1 ? parseBRL(r._cells[cPrevM]) : 180;
-         return { nome, meses, total, previsto, pct: previsto ? +(total/previsto*100).toFixed(1) : 0 };
+      .filter(r => {
+        const id = r._cells[0];
+        return id && /^\d{6}$/.test(id.trim()); // só linhas com ID de 6 dígitos
       })
-      .filter(c => c.nome && !c.nome.toUpperCase().includes('TOTAL'));
+      .map(r => {
+        const id = r._cells[0];
+        // Nome: col B pode ser VLOOKUP que gviz não resolve → usar ID como fallback
+        const nome = r._cells[1] && r._cells[1].trim() && !/^\d+$/.test(r._cells[1].trim())
+          ? r._cells[1].trim() : `Membro ${id}`;
+        const meses = {};
+        let total = 0;
+        MESES.forEach((m,i) => {
+          const v = parseBRL(r._cells[2+i]);
+          meses[m] = v; total += v;
+        });
+        const previsto = parseBRL(r._cells[15]) || 180;
+        return { id, nome, meses, total, previsto, pct: previsto ? +(total/previsto*100).toFixed(1) : 0 };
+      })
+      .filter(c => c.total > 0 || c.previsto > 0); // só membros com algum dado
 
-    // ================= LIVRO CAIXA (FUZZY) =================
-    let cData = -1, cTipo = -1, cCat = -1, cDesc = -1, cValor = -1, cSaldo = -1;
-    lc.cols.forEach((c, i) => {
-        const up = c.toUpperCase();
-        if (up.includes('DATA')) cData = i;
-        else if (up.includes('TIPO') || up.includes('MOVIMENTO')) cTipo = i;
-        else if (up.includes('CATEGORIA')) cCat = i;
-        else if (up.includes('DESCRI') || up.includes('HISTÓRICO')) cDesc = i;
-        else if (up.includes('VALOR') || up.includes('QUANTIA') || up.includes('R$')) cValor = i;
-        else if (up.includes('SALDO')) cSaldo = i;
-    });
-    // Fallbacks
-    if (cData === -1) cData = 0; if (cTipo === -1) cTipo = 1; if (cCat === -1) cCat = 2;
-    if (cDesc === -1) cDesc = 3; if (cValor === -1) cValor = 4; if (cSaldo === -1) cSaldo = 5;
+    // ── LIVRO CAIXA ──────────────────────────────────────────────────
+    // Estrutura REAL da aba: A=GESTÃO, B=DATA, C=TIPO, D=CATEGORIA, E=DESCRIÇÃO, F=VALOR, G=SALDO
+    // Em _cells: índice 0=GESTÃO, 1=DATA, 2=TIPO, 3=CATEGORIA, 4=DESCRIÇÃO, 5=VALOR, 6=SALDO
+    const cGestao=0, cData=1, cTipo=2, cCat=3, cDesc=4, cValor=5, cSaldo=6;
 
     const caixa = lc.rows
+      .filter(r => {
+        const data = r._cells[cData];
+        const tipo = r._cells[cTipo];
+        // Filtra só linhas com data válida (DD/MM/YYYY) e tipo Entrada/Saída
+        return data && /\d{2}\/\d{2}\/\d{4}/.test(data) && tipo && /^(entrada|sa[íi]da)$/i.test(tipo.trim());
+      })
       .map(r => ({
-          data: r._cells[cData], tipo: r._cells[cTipo], categoria: r._cells[cCat],
-          descricao: r._cells[cDesc], valor: parseBRL(r._cells[cValor]), saldo: parseBRL(r._cells[cSaldo])
-      }))
-      .filter(r => r.data && r.tipo);
+        gestao:  r._cells[cGestao],
+        data:    r._cells[cData],
+        tipo:    r._cells[cTipo],
+        categoria: r._cells[cCat],
+        descricao: r._cells[cDesc],
+        valor:   parseBRL(r._cells[cValor]),
+        saldo:   parseBRL(r._cells[cSaldo])
+      }));
 
-    // ================= CONSELHEIROS (FUZZY DUPLO) =================
-    let cNome1 = -1, cStatus1 = -1, cValor1 = -1;
-    let cNome2 = -1, cStatus2 = -1, cValor2 = -1;
-    cons.cols.forEach((c, i) => {
-       const up = c.toUpperCase();
-       if (up.includes('NOME') || up.includes('CONSELHEIRO')) { 
-           if (cNome1 === -1) cNome1 = i; else if (cNome2 === -1) cNome2 = i; 
-       }
-       if (up.includes('STATUS') || up.includes('SITUA')) { 
-           if (cStatus1 === -1) cStatus1 = i; else if (cStatus2 === -1) cStatus2 = i; 
-       }
-       if (up.includes('VALOR') || up.includes('PAGO') || up.includes('QUANTIA')) { 
-           if (cValor1 === -1) cValor1 = i; else if (cValor2 === -1) cValor2 = i; 
-       }
-    });
-    // Fallbacks robustos (Posicionais)
-    if (cNome1 === -1) cNome1 = 0; if (cStatus1 === -1) cStatus1 = 1; if (cValor1 === -1) cValor1 = 2;
-    if (cNome2 === -1) cNome2 = 4; if (cStatus2 === -1) cStatus2 = 5; if (cValor2 === -1) cValor2 = 6;
+    // ── CONSELHEIROS ─────────────────────────────────────────────────
+    // Estrutura: A=NOME_COLAB, B=STATUS_COLAB, C=VALOR_COLAB, D=GESTÃO_COLAB, E=vazio,
+    //            F=NOME_ESTAT,  G=STATUS_ESTAT,  H=VALOR_ESTAT,  I=GESTÃO_ESTAT
+    // Em _cells: 0=nome_c, 1=status_c, 2=valor_c, 3=gestao_c, 4=vazio, 5=nome_e, 6=status_e, 7=valor_e
+    const SKIP_CONS = new Set(['NOME','TOTAL PAGO','RESUMO GERAL','ARRECADADO COLABORATIVO',
+      'ARRECADADO ESTATUTÁRIO','TOTAL GERAL','TOTAL PREVISTO','% ARRECADADO',
+      'CONSELHO COLABORATIVO','CONSELHO ESTATUTÁRIO']);
 
     const consColab = cons.rows
-      .map(r => ({ nome: r._cells[cNome1], status: r._cells[cStatus1], valor: parseBRL(r._cells[cValor1]) || 180 }))
-      .filter(c => c.nome && !c.nome.toUpperCase().includes('TOTAL'));
+      .map(r => ({ nome: r._cells[0], status: r._cells[1], valor: parseBRL(r._cells[2]) || 180 }))
+      .filter(c => c.nome && !SKIP_CONS.has(c.nome.toUpperCase().trim()) && /^[A-Za-zÀ-ÿ]/.test(c.nome));
 
     const consEstat = cons.rows
-      .map(r => ({ nome: r._cells[cNome2], status: r._cells[cStatus2], valor: parseBRL(r._cells[cValor2]) || 75 }))
-      .filter(c => c.nome && !c.nome.toUpperCase().includes('TOTAL'));
+      .map(r => ({ nome: r._cells[5], status: r._cells[6], valor: parseBRL(r._cells[7]) || 75 }))
+      .filter(c => c.nome && !SKIP_CONS.has(c.nome.toUpperCase().trim()) && /^[A-Za-zÀ-ÿ]/.test(c.nome));
 
+    // ── RENDER ────────────────────────────────────────────────────────
     showLoading(false);
     const now = new Date();
     const el = document.getElementById('last-update');
-    if (el) el.textContent = 'Atualizado às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    if(el) el.textContent = 'Atualizado às ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 
-    /* ---- RENDERIZAÇÃO ---- */
-    applyFilters(); 
+    applyFilters();
     renderPresenca(presence, dateCols);
     renderFinanceiro(caixa, mensalidades, consColab, consEstat);
 
   } catch(e) {
     console.error(e);
-    showError(e.message || "Erro desconhecido ao processar planilha.");
+    showError(e.message || 'Erro desconhecido');
   }
 }
 
-/* ========================================================== RENDERIZAÇÃO GLOBAL (TAB 0) */
-function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const fc = document.getElementById('filterCondicao').value;
-  const fs = document.getElementById('filterSituacao').value;
-
-  _filtM = _allM.filter(m => {
-    const matchQ = !q || m.nome.toLowerCase().includes(q);
-    const matchC = !fc || m.condicao === fc;
-    const matchS = !fs || m.situacao === fs;
-    return matchQ && matchC && matchS;
+// ── MEMBROS ──────────────────────────────────────────────────────────────────
+function applyFilters(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const fc=document.getElementById('filterCondicao').value;
+  const fs=document.getElementById('filterSituacao').value;
+  _filtM=_allM.filter(m=>{
+    const mQ=!q||m.nome.toLowerCase().includes(q);
+    const mC=!fc||m.condicao===fc;
+    const mS=!fs||m.situacao===fs;
+    return mQ&&mC&&mS;
   });
-
-  _page = 1;
-  updateDashboardCompleto(_filtM);
-  _renderPage();
+  _page=1; updateDashboardCompleto(_filtM); _renderPage();
 }
 
-function updateDashboardCompleto(mArray) {
-  const byC = {}, byS = {}, inicSem = {}; let idades = [];
-  mArray.forEach(m => {
-    byC[m.condicao] = (byC[m.condicao] || 0) + 1;
-    byS[m.situacao] = (byS[m.situacao] || 0) + 1;
-    if (m.idade) idades.push(m.idade);
-    if (m.iniciacao) {
-      const p = m.iniciacao.split('/');
-      if (p[2] && p[1]) {
-        const sem = p[2] + (parseInt(p[1]) <= 6 ? '-1' : '-2');
-        inicSem[sem] = (inicSem[sem] || 0) + 1;
-      }
-    }
+function updateDashboardCompleto(mArray){
+  const byC={},byS={},inicSem={};let idades=[];
+  mArray.forEach(m=>{
+    byC[m.condicao]=(byC[m.condicao]||0)+1;
+    byS[m.situacao]=(byS[m.situacao]||0)+1;
+    if(m.idade)idades.push(m.idade);
+    if(m.iniciacao){const p=m.iniciacao.split('/');if(p[2]&&p[1]){const s=p[2]+(parseInt(p[1])<=6?'-1':'-2');inicSem[s]=(inicSem[s]||0)+1;}}
   });
-  const idMed = idades.length ? (idades.reduce((a,b)=>a+b,0)/idades.length).toFixed(1) : '—';
-  const idMin = idades.length ? Math.min(...idades) : '—';
-  const idMax = idades.length ? Math.max(...idades) : '—';
-
-  const g = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
-  g('met-total', mArray.length);
-  g('met-dm',    byC['DeMolay Ativo']||0);
-  g('met-sen',   byC['Sênior DeMolay']||0);
-  g('met-mac',   (byC['Maçom']||0)+(byC['Sênior / Maçom']||0));
-  g('met-reg',   byS['Regular']||0);
-  g('met-irr',   byS['Irregular']||0);
-  g('met-senreg',byS['Sênior Regular']||0);
-  g('met-idmed', idMed);
-  g('met-idsub', 'Mín '+idMin+' — Máx '+idMax+' anos');
-
-  const total = mArray.length;
-  const rows = [
-    ['DeMolay Ativo', byC['DeMolay Ativo']||0, 'var(--blue)'],
-    ['Sênior DeMolay', byC['Sênior DeMolay']||0, 'var(--purple)'],
-    ['Maçom', byC['Maçom']||0, 'var(--teal)'],
-    ['Sênior / Maçom', byC['Sênior / Maçom']||0, 'var(--gold)'],
-    ['Não Informado', byC['Não Informado']||0, 'var(--text3)'],
-  ];
-  document.getElementById('cond-dist').innerHTML = rows.map(([label,n,color]) => `
-    <div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;">
-        <span style="color:var(--text2)">${label}</span>
-        <span style="color:var(--text);font-weight:600">${n} <span style="color:var(--text3);font-weight:400">(${total?Math.round(n/total*100):0}%)</span></span>
-      </div>
-      <div class="prog-bar"><div class="prog-fill" style="width:${total?Math.round(n/total*100):0}%;background:${color}"></div></div>
-    </div>`).join('');
-
-  if (total === 0) {
-      if (_charts['inicChart']) _charts['inicChart'].destroy();
-      if (_charts['demoChart']) _charts['demoChart'].destroy();
-      if (_charts['condicaoChart']) _charts['condicaoChart'].destroy();
-      if (_charts['situacaoChart']) _charts['situacaoChart'].destroy();
-      return;
-  }
-
-  const iLabels = Object.keys(inicSem).sort();
-  const iVals   = iLabels.map(k => inicSem[k]);
-  const h = Math.max(iLabels.length*22+60, 300);
-  
-  const inicP = document.querySelector('#inicChart')?.parentElement;
-  if (inicP) inicP.style.height = h+'px';
-  const demoP = document.querySelector('#demoChart')?.parentElement;
-  if (demoP) demoP.style.height = h+'px';
-
+  const idMed=idades.length?(idades.reduce((a,b)=>a+b,0)/idades.length).toFixed(1):'—';
+  const idMin=idades.length?Math.min(...idades):'—';
+  const idMax=idades.length?Math.max(...idades):'—';
+  const g=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  g('met-total',mArray.length);g('met-dm',byC['DeMolay Ativo']||0);g('met-sen',byC['Sênior DeMolay']||0);
+  g('met-mac',(byC['Maçom']||0)+(byC['Sênior / Maçom']||0));g('met-reg',byS['Regular']||0);
+  g('met-irr',byS['Irregular']||0);g('met-senreg',byS['Sênior Regular']||0);
+  g('met-idmed',idMed);g('met-idsub','Mín '+idMin+' — Máx '+idMax+' anos');
+  const total=mArray.length;
+  const rows=[['DeMolay Ativo',byC['DeMolay Ativo']||0,'var(--blue)'],['Sênior DeMolay',byC['Sênior DeMolay']||0,'var(--purple)'],['Maçom',byC['Maçom']||0,'var(--teal)'],['Sênior / Maçom',byC['Sênior / Maçom']||0,'var(--gold)'],['Não Informado',byC['Não Informado']||0,'var(--text3)']];
+  document.getElementById('cond-dist').innerHTML=rows.map(([label,n,color])=>`<div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px"><span style="color:var(--text2)">${label}</span><span style="color:var(--text);font-weight:600">${n} <span style="color:var(--text3);font-weight:400">(${total?Math.round(n/total*100):0}%)</span></span></div><div class="prog-bar"><div class="prog-fill" style="width:${total?Math.round(n/total*100):0}%;background:${color}"></div></div></div>`).join('');
+  if(total===0){['inicChart','demoChart','condicaoChart','situacaoChart'].forEach(k=>{if(_charts[k])_charts[k].destroy();});return;}
+  const iLabels=Object.keys(inicSem).sort(),iVals=iLabels.map(k=>inicSem[k]);
+  const h=Math.max(iLabels.length*22+60,300);
+  const ip=document.querySelector('#inicChart')?.parentElement;if(ip)ip.style.height=h+'px';
+  const dp=document.querySelector('#demoChart')?.parentElement;if(dp)dp.style.height=h+'px';
   mkChart('inicChart',{type:'bar',data:{labels:iLabels,datasets:[{label:'Iniciações',data:iVals,backgroundColor:'#c9a227',borderRadius:4,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}}}}});
   mkChart('demoChart',{type:'bar',data:{labels:iLabels,datasets:[{label:'Por semestre',data:iVals,backgroundColor:'#3b82f6',borderRadius:4,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}}}}});
-
-  const cL=['DeMolay Ativo','Sênior DeMolay','Maçom','Sênior / Maçom','Não Informado'];
-  const cC=['#3b82f6','#8b5cf6','#14b8a6','#c9a227','#9aa3be'];
-  const cV=cL.map(l=>byC[l]||0);
+  const cL=['DeMolay Ativo','Sênior DeMolay','Maçom','Sênior / Maçom','Não Informado'],cC=['#3b82f6','#8b5cf6','#14b8a6','#c9a227','#9aa3be'],cV=cL.map(l=>byC[l]||0);
   mkChart('condicaoChart',{type:'doughnut',data:{labels:cL,datasets:[{data:cV,backgroundColor:cC,borderWidth:2,borderColor:'#161b26',hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}});
-  const leg1=document.getElementById('condicaoLeg'); 
-  if (leg1) {
-    leg1.innerHTML='';
-    cL.forEach((l,i)=>{ leg1.innerHTML+=`<span class="dleg"><span class="dleg-sq" style="background:${cC[i]}"></span>${l} (${cV[i]})</span>`; });
-  }
-
-  const sL=['Irregular','Regular','Sênior Regular','Inativo','Não Informado'];
-  const sC=['#ef4444','#22c55e','#3b82f6','#f59e0b','#9aa3be'];
-  const sV=sL.map(l=>byS[l]||0);
+  const leg1=document.getElementById('condicaoLeg');if(leg1){leg1.innerHTML='';cL.forEach((l,i)=>{leg1.innerHTML+=`<span class="dleg"><span class="dleg-sq" style="background:${cC[i]}"></span>${l} (${cV[i]})</span>`});}
+  const sL=['Irregular','Regular','Sênior Regular','Inativo','Não Informado'],sC=['#ef4444','#22c55e','#3b82f6','#f59e0b','#9aa3be'],sV=sL.map(l=>byS[l]||0);
   mkChart('situacaoChart',{type:'doughnut',data:{labels:sL,datasets:[{data:sV,backgroundColor:sC,borderWidth:2,borderColor:'#161b26',hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}});
-  const leg2=document.getElementById('situacaoLeg'); 
-  if (leg2) {
-    leg2.innerHTML='';
-    sL.forEach((l,i)=>{ leg2.innerHTML+=`<span class="dleg"><span class="dleg-sq" style="background:${sC[i]}"></span>${l} (${sV[i]})</span>`; });
-  }
+  const leg2=document.getElementById('situacaoLeg');if(leg2){leg2.innerHTML='';sL.forEach((l,i)=>{leg2.innerHTML+=`<span class="dleg"><span class="dleg-sq" style="background:${sC[i]}"></span>${l} (${sV[i]})</span>`});}
 }
 
 function _renderPage(){
-  const s=(_page-1)*PG, page=_filtM.slice(s,s+PG), total=_filtM.length;
-  const tbody = document.getElementById('membrosBody');
-  if (tbody) {
-    tbody.innerHTML=page.map((m,i)=>`<tr>
-      <td style="color:var(--text3);font-size:12px">${s+i+1}</td>
-      <td class="primary">${m.nome}</td>
-      <td>${badgeCond(m.condicao)}</td>
-      <td>${badgeSit(m.situacao)}</td>
-      <td>${m.nascimento||'—'}</td>
-      <td>${m.idade||'—'}</td>
-      <td>${m.iniciacao||'—'}</td>
-      <td style="font-size:12px">${m.anuidade||'—'}</td>
-      <td style="font-size:12px;color:var(--text3)">${m.cargo||'—'}</td>
-    </tr>`).join('');
-  }
-  const info = document.getElementById('pageInfo');
-  if (info) info.textContent=total > 0 ? `${s+1}–${Math.min(s+PG,total)} de ${total}` : 'Nenhum resultado';
-  const btnP = document.getElementById('prevBtn');
-  if (btnP) btnP.disabled=_page<=1;
-  const btnN = document.getElementById('nextBtn');
-  if (btnN) btnN.disabled=_page>=Math.ceil(total/PG) || total===0;
+  const s=(_page-1)*PG,page=_filtM.slice(s,s+PG),total=_filtM.length;
+  const tbody=document.getElementById('membrosBody');
+  if(tbody)tbody.innerHTML=page.map((m,i)=>`<tr><td style="color:var(--text3);font-size:12px">${s+i+1}</td><td class="primary">${m.nome}</td><td>${badgeCond(m.condicao)}</td><td>${badgeSit(m.situacao)}</td><td>${m.nascimento||'—'}</td><td>${m.idade||'—'}</td><td>${m.iniciacao||'—'}</td><td style="font-size:12px">${m.anuidade||'—'}</td><td style="font-size:12px;color:var(--text3)">${m.cargo||'—'}</td></tr>`).join('');
+  const info=document.getElementById('pageInfo');if(info)info.textContent=total>0?`${s+1}–${Math.min(s+PG,total)} de ${total}`:'Nenhum resultado';
+  const btnP=document.getElementById('prevBtn');if(btnP)btnP.disabled=_page<=1;
+  const btnN=document.getElementById('nextBtn');if(btnN)btnN.disabled=_page>=Math.ceil(total/PG)||total===0;
 }
-function changePage(dir){ _page+=dir; _renderPage(); }
+function changePage(dir){_page+=dir;_renderPage();}
+function badgeCond(c){const map={'DeMolay Ativo':'badge-ativo','Sênior DeMolay':'badge-senior','Maçom':'badge-macon','Sênior / Maçom':'badge-macon'};return `<span class="badge ${map[c]||'badge-nao'}">${c}</span>`;}
+function badgeSit(s){const map={'Regular':'badge-regular','Irregular':'badge-irregular','Sênior Regular':'badge-senior','Inativo':'badge-inativo'};return `<span class="badge ${map[s]||'badge-nao'}">${s}</span>`;}
+function switchTab(i){document.querySelectorAll('.tab').forEach((t,idx)=>t.classList.toggle('active',idx===i));document.querySelectorAll('.tab-content').forEach((c,idx)=>c.classList.toggle('active',idx===i));}
 
-/* ========================================================== RENDER TAB 1 e 2 */
-function badgeCond(c){
-  const map={'DeMolay Ativo':'badge-ativo','Sênior DeMolay':'badge-senior','Maçom':'badge-macon','Sênior / Maçom':'badge-macon'};
-  return `<span class="badge ${map[c]||'badge-nao'}">${c}</span>`;
-}
-function badgeSit(s){
-  const map={'Regular':'badge-regular','Irregular':'badge-irregular','Sênior Regular':'badge-senior','Inativo':'badge-inativo'};
-  return `<span class="badge ${map[s]||'badge-nao'}">${s}</span>`;
-}
-
-function switchTab(i) {
-  document.querySelectorAll('.tab').forEach((t,idx) => t.classList.toggle('active', idx===i));
-  document.querySelectorAll('.tab-content').forEach((c,idx) => c.classList.toggle('active', idx===i));
-}
-
-function renderPresenca(pres, dates) {
-  const totalP=pres.reduce((a,m)=>a+m.p,0), totalF=pres.reduce((a,m)=>a+m.f,0);
+// ── PRESENÇA ─────────────────────────────────────────────────────────────────
+function renderPresenca(pres,dates){
+  const totalP=pres.reduce((a,m)=>a+m.p,0),totalF=pres.reduce((a,m)=>a+m.f,0);
   const avg=pres.length?Math.round(pres.reduce((a,m)=>a+m.pct,0)/pres.length):0;
-  
-  const mDiv = document.getElementById('presMetrics');
-  if (mDiv) {
-    mDiv.innerHTML=`
-      <div class="metric green"><div class="metric-label">Total presenças</div><div class="metric-value">${totalP}</div><div class="metric-sub">${dates.length} reunião(ões) — S1/2026</div></div>
-      <div class="metric red"><div class="metric-label">Total faltas</div><div class="metric-value">${totalF}</div><div class="metric-sub">S1/2026</div></div>
-      <div class="metric gold"><div class="metric-label">Frequência média</div><div class="metric-value">${avg}%</div><div class="metric-sub">Do quadro nas reuniões</div></div>
-      <div class="metric blue"><div class="metric-label">Membros no quadro</div><div class="metric-value">${pres.length}</div><div class="metric-sub">DeMolays ativos</div></div>`;
-  }
-
+  const mDiv=document.getElementById('presMetrics');
+  if(mDiv)mDiv.innerHTML=`<div class="metric green"><div class="metric-label">Total presenças</div><div class="metric-value">${totalP}</div><div class="metric-sub">${dates.length} reunião(ões) — S1/2026</div></div><div class="metric red"><div class="metric-label">Total faltas</div><div class="metric-value">${totalF}</div><div class="metric-sub">S1/2026</div></div><div class="metric gold"><div class="metric-label">Frequência média</div><div class="metric-value">${avg}%</div><div class="metric-sub">Do quadro nas reuniões</div></div><div class="metric blue"><div class="metric-label">Membros no quadro</div><div class="metric-value">${pres.length}</div><div class="metric-sub">DeMolays ativos</div></div>`;
   const sorted=[...pres].sort((a,b)=>b.pct-a.pct);
   const h=Math.max(sorted.length*28+60,300);
-  const pChartWrap = document.querySelector('#presBarChart')?.parentElement;
-  if (pChartWrap) pChartWrap.style.height=h+'px';
-  
+  const pChartWrap=document.querySelector('#presBarChart')?.parentElement;if(pChartWrap)pChartWrap.style.height=h+'px';
   mkChart('presBarChart',{type:'bar',data:{labels:sorted.map(m=>m.nome.split(' ').slice(0,2).join(' ')),datasets:[{label:'%',data:sorted.map(m=>m.pct),backgroundColor:sorted.map(m=>m.pct>=75?'#22c55e':m.pct>=50?'#f59e0b':'#ef4444'),borderRadius:4,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{max:100,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>v+'%'}},y:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}}}}});
-
-  const gridWrap = document.getElementById('presGridWrap');
-  if (gridWrap) {
-    gridWrap.innerHTML=`<table style="font-size:11px;border-collapse:collapse;min-width:100%">
-      <thead><tr style="background:var(--bg3)">
-        <th style="padding:7px 10px;text-align:left;color:var(--text3);font-weight:600">Nome</th>
-        ${dates.map(d=>`<th style="padding:7px 8px;color:var(--text3);font-weight:600;text-align:center;white-space:nowrap">${d}</th>`).join('')}
-        <th style="padding:7px 8px;color:var(--green);font-weight:600;text-align:center">P</th>
-        <th style="padding:7px 8px;color:var(--red);font-weight:600;text-align:center">F</th>
-        <th style="padding:7px 8px;color:var(--gold);font-weight:600;text-align:center">%</th>
-      </tr></thead>
-      <tbody>${pres.map(m=>`<tr style="border-top:1px solid var(--border)">
-        <td style="padding:7px 10px;color:var(--text);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis">${m.nome.split(' ').slice(0,3).join(' ')}</td>
-        ${dates.map(d=>{ const v=m.reunioes[d]; if(!v) return `<td style="text-align:center;padding:5px 6px"><span style="background:var(--bg4);color:var(--text3);border-radius:4px;padding:2px 7px;font-size:10px">—</span></td>`; return `<td style="text-align:center;padding:5px 6px"><span class="${v.toUpperCase()==='P'?'pres-p':v.toUpperCase()==='F'?'pres-f':'pres-j'}">${v}</span></td>`; }).join('')}
-        <td style="text-align:center;padding:5px 6px;color:var(--green);font-weight:700">${m.p}</td>
-        <td style="text-align:center;padding:5px 6px;color:var(--red);font-weight:700">${m.f}</td>
-        <td style="text-align:center;padding:5px 6px;color:var(--gold);font-weight:700">${m.pct}%</td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  }
-
-  const pBody = document.getElementById('presBody');
-  if (pBody) {
-    pBody.innerHTML=sorted.map(m=>{
-      const pc=m.pct>=75?'var(--green)':m.pct>=50?'var(--amber)':'var(--red)';
-      return `<tr>
-        <td class="primary">${m.nome}</td>
-        <td style="font-size:12px;color:var(--text3)">${m.cargo||'—'}</td>
-        <td>${m.idade||'—'}</td>
-        <td style="color:var(--green);font-weight:700">${m.p}</td>
-        <td style="color:var(--red);font-weight:700">${m.f}</td>
-        <td style="color:var(--amber);font-weight:700">${m.j}</td>
-        <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:60px"><div class="prog-bar"><div class="prog-fill" style="width:${m.pct}%;background:${pc}"></div></div></div><span style="font-weight:700;color:${pc};min-width:36px;text-align:right">${m.pct}%</span></div></td>
-      </tr>`;
-    }).join('');
-  }
+  const gw=document.getElementById('presGridWrap');
+  if(gw)gw.innerHTML=`<table style="font-size:11px;border-collapse:collapse;min-width:100%"><thead><tr style="background:var(--bg3)"><th style="padding:7px 10px;text-align:left;color:var(--text3);font-weight:600">Nome</th>${dates.map(d=>`<th style="padding:7px 8px;color:var(--text3);font-weight:600;text-align:center;white-space:nowrap">${d}</th>`).join('')}<th style="padding:7px 8px;color:var(--green);font-weight:600;text-align:center">P</th><th style="padding:7px 8px;color:var(--red);font-weight:600;text-align:center">F</th><th style="padding:7px 8px;color:var(--gold);font-weight:600;text-align:center">%</th></tr></thead><tbody>${pres.map(m=>`<tr style="border-top:1px solid var(--border)"><td style="padding:7px 10px;color:var(--text);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis">${m.nome.split(' ').slice(0,3).join(' ')}</td>${dates.map(d=>{const v=m.reunioes[d];if(!v)return`<td style="text-align:center;padding:5px 6px"><span style="background:var(--bg4);color:var(--text3);border-radius:4px;padding:2px 7px;font-size:10px">—</span></td>`;return`<td style="text-align:center;padding:5px 6px"><span class="${v.toUpperCase()==='P'?'pres-p':v.toUpperCase()==='F'?'pres-f':'pres-j'}">${v}</span></td>`;}).join('')}<td style="text-align:center;padding:5px 6px;color:var(--green);font-weight:700">${m.p}</td><td style="text-align:center;padding:5px 6px;color:var(--red);font-weight:700">${m.f}</td><td style="text-align:center;padding:5px 6px;color:var(--gold);font-weight:700">${m.pct}%</td></tr>`).join('')}</tbody></table>`;
+  const pBody=document.getElementById('presBody');
+  if(pBody)pBody.innerHTML=sorted.map(m=>{const pc=m.pct>=75?'var(--green)':m.pct>=50?'var(--amber)':'var(--red)';return`<tr><td class="primary">${m.nome}</td><td style="font-size:12px;color:var(--text3)">${m.cargo||'—'}</td><td>${m.idade||'—'}</td><td style="color:var(--green);font-weight:700">${m.p}</td><td style="color:var(--red);font-weight:700">${m.f}</td><td style="color:var(--amber);font-weight:700">${m.j}</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;min-width:60px"><div class="prog-bar"><div class="prog-fill" style="width:${m.pct}%;background:${pc}"></div></div></div><span style="font-weight:700;color:${pc};min-width:36px;text-align:right">${m.pct}%</span></div></td></tr>`;}).join('');
 }
 
+// ── FINANCEIRO ───────────────────────────────────────────────────────────────
 function renderFinanceiro(caixa, mens, consColab, consEstat) {
-  // Lógica inteligente para Entradas e Saídas
-  const ent = caixa.filter(c => /^(ENTRADA|RECEITA|CRÉDITO|CREDITO|\+)$/i.test(c.tipo.trim())).reduce((s,c)=>s+c.valor,0);
-  const sai = caixa.filter(c => /^(SAÍDA|SAIDA|DESPESA|DÉBITO|DEBITO|-)$/i.test(c.tipo.trim())).reduce((s,c)=>s+c.valor,0);
-  const saldo = ent - sai;
+  const fmt = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 
-  // Lógica inteligente para Status "Pago"
-  const isPago = status => /^(PAGO|OK|SIM|S|V|TRUE|1)$/i.test(String(status).trim());
+  // Saldo: última linha do livro caixa
+  const ultimaLinha = caixa[caixa.length - 1];
+  const saldoAtual = ultimaLinha ? ultimaLinha.saldo : 0;
 
-  const cPago=consColab.filter(c=>isPago(c.status)).reduce((s,c)=>s+c.valor,0);
-  const cPrev=consColab.reduce((s,c)=>s+c.valor,0);
-  const ePago=consEstat.filter(c=>isPago(c.status)).reduce((s,c)=>s+c.valor,0);
-  const ePrev=consEstat.reduce((s,c)=>s+c.valor,0);
+  // Entradas e saídas S1/2026 (excluir S2/2025)
+  const caixaS1 = caixa.filter(c => c.gestao && c.gestao.includes('S1/2026'));
+  const ent = caixaS1.filter(c => isEntrada(c.tipo)).reduce((s,c)=>s+c.valor,0);
+  const sai = caixaS1.filter(c => isSaida(c.tipo)).reduce((s,c)=>s+c.valor,0);
+
+  // Conselheiros
+  const isPago = s => /^pago$/i.test(String(s||'').trim());
+  const cPago = consColab.filter(c=>isPago(c.status)).reduce((s,c)=>s+c.valor,0);
+  const cPrev = consColab.reduce((s,c)=>s+c.valor,0);
+  const ePago = consEstat.filter(c=>isPago(c.status)).reduce((s,c)=>s+c.valor,0);
+  const ePrev = consEstat.reduce((s,c)=>s+c.valor,0);
   const tCA=cPago+ePago, tCP=cPrev+ePrev;
 
-  const g=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
-  g('fin-saldo','R$ '+saldo.toFixed(0));
-  g('fin-saldo-sub','Após lançamentos S1/2026');
-  g('fin-ent','R$ '+ent.toFixed(0));
-  g('fin-sai','R$ '+sai.toFixed(0));
-  g('fin-cons','R$ '+tCA.toLocaleString('pt-BR'));
-  g('fin-cons-sub','de R$ '+tCP.toLocaleString('pt-BR')+' previstos');
+  const g=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  g('fin-saldo', fmt(saldoAtual));
+  g('fin-saldo-sub', `Saldo acumulado — ${caixa.length} lançamentos`);
+  g('fin-ent', fmt(ent));
+  g('fin-sai', fmt(sai));
+  g('fin-cons', fmt(tCA));
+  g('fin-cons-sub', `de ${fmt(tCP)} previstos (${tCP?Math.round(tCA/tCP*100):0}%)`);
 
-  const cxB = document.getElementById('caixaBody');
-  if (cxB) {
-    cxB.innerHTML=caixa.map(c=>`<tr>
-      <td>${c.data}</td>
-      <td class="${/^(ENTRADA|RECEITA|CRÉDITO|CREDITO|\+)$/i.test(c.tipo) ? 'tipo-entrada' : 'tipo-saida'}">${c.tipo}</td>
-      <td style="color:var(--text3);font-size:12px">${c.categoria}</td>
-      <td class="primary" style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${c.descricao}</td>
-      <td style="font-weight:700;color:${/^(ENTRADA|RECEITA|CRÉDITO|CREDITO|\+)$/i.test(c.tipo) ? 'var(--green)' : 'var(--red)'}">R$ ${c.valor.toFixed(2)}</td>
-      <td style="font-weight:600;color:var(--gold)">R$ ${c.saldo.toFixed(2)}</td>
-    </tr>`).join('');
+  // Tabela livro caixa
+  const cxB=document.getElementById('caixaBody');
+  if(cxB) cxB.innerHTML=caixa.map(c=>`<tr>
+    <td>${c.data}</td>
+    <td class="${isEntrada(c.tipo)?'tipo-entrada':'tipo-saida'}">${c.tipo}</td>
+    <td style="color:var(--text3);font-size:12px">${c.categoria||'—'}</td>
+    <td class="primary" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${c.descricao||'—'}</td>
+    <td style="font-weight:700;color:${isEntrada(c.tipo)?'var(--green)':'var(--red)'}">${fmt(c.valor)}</td>
+    <td style="font-weight:600;color:var(--gold)">${fmt(c.saldo)}</td>
+  </tr>`).join('');
+
+  if(caixa.length>0) {
+    // Gráfico: só S1/2026, agrupado por mês
+    const mesesMap={};
+    caixaS1.forEach(c=>{
+      const mk=c.data.slice(3,10); // MM/YYYY
+      if(!mesesMap[mk]) mesesMap[mk]={e:0,s:0};
+      if(isEntrada(c.tipo)) mesesMap[mk].e=+(mesesMap[mk].e+c.valor).toFixed(2);
+      else mesesMap[mk].s=+(mesesMap[mk].s+c.valor).toFixed(2);
+    });
+    const mLabels=Object.keys(mesesMap).sort();
+    const MN={'03/2026':'Mar','04/2026':'Abr','05/2026':'Mai','06/2026':'Jun'};
+    mkChart('caixaChart',{type:'bar',data:{labels:mLabels.map(k=>MN[k]||k),datasets:[
+      {label:'Entradas',data:mLabels.map(k=>mesesMap[k].e),backgroundColor:'#22c55e',borderRadius:4},
+      {label:'Saídas',  data:mLabels.map(k=>mesesMap[k].s),backgroundColor:'#ef4444',borderRadius:4}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#9aa3be',font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>'R$'+v}}}}});
   }
 
-  if (caixa.length > 0) {
-      mkChart('caixaChart',{type:'bar',data:{labels:caixa.map(c=>c.descricao.split(' ').slice(0,2).join(' ')),datasets:[{label:'Valor',data:caixa.map(c=>c.valor),backgroundColor:caixa.map(c=>/^(ENTRADA|RECEITA|CRÉDITO|CREDITO|\+)$/i.test(c.tipo)?'#22c55e':'#ef4444'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>'R$'+v}}}}});
-  }
-
+  // Mensalidades
   const ms=[...mens].sort((a,b)=>b.pct-a.pct);
-  const mB = document.getElementById('mensBody');
-  if (mB) {
-    mB.innerHTML=ms.map(m=>{
-      const c=m.pct>=75?'var(--green)':m.pct>=33?'var(--amber)':'var(--red)';
-      return `<tr>
-        <td class="primary" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.nome.split(' ').slice(0,2).join(' ')}</td>
-        <td style="color:var(--green);font-weight:600">R$ ${m.total.toFixed(0)}</td>
-        <td style="color:var(--text3)">R$ ${m.previsto.toFixed(0)}</td>
-        <td style="font-weight:700;color:${c}">${m.pct.toFixed(1)}%</td>
-      </tr>`;
-    }).join('');
-  }
+  const mB=document.getElementById('mensBody');
+  if(mB) mB.innerHTML=ms.map(m=>{
+    const c=m.pct>=75?'var(--green)':m.pct>=33?'var(--amber)':'var(--red)';
+    return`<tr>
+      <td class="primary" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.nome}</td>
+      <td style="color:var(--green);font-weight:600">${fmt(m.total)}</td>
+      <td style="color:var(--text3)">${fmt(m.previsto)}</td>
+      <td style="font-weight:700;color:${c}">${m.pct.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
 
   const tp=mens.reduce((a,m)=>a+m.total,0), tprev=mens.reduce((a,m)=>a+m.previsto,0);
-  if (mens.length > 0) {
-      mkChart('mensChart',{type:'bar',data:{labels:['Total pago','Total previsto'],datasets:[{data:[tp,tprev],backgroundColor:['#22c55e','rgba(255,255,255,0.1)'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>'R$'+v}}}}});
+  if(mens.length>0) {
+    mkChart('mensChart',{type:'bar',data:{labels:['Total pago','Total previsto'],datasets:[{data:[tp,tprev],backgroundColor:['#22c55e','rgba(255,255,255,0.1)'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#9aa3be',font:{size:11}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#9aa3be',font:{size:11},callback:v=>'R$'+v}}}}});
   }
 
-  const cC = document.getElementById('consCOlab');
-  if (cC) {
-    cC.innerHTML=consColab.map(c=>`<div class="cons-item">
-      <span class="cons-name">${c.nome}</span>
-      <div class="cons-right"><span class="cons-valor">R$ ${c.valor.toFixed(0)}</span>
-      <span class="badge ${isPago(c.status)?'badge-pago':'badge-pendente'}">${c.status || 'Pendente'}</span></div>
-    </div>`).join('');
-  }
-  g('colabSummary',`R$ ${cPago.toFixed(0)} / R$ ${cPrev.toFixed(0)}`);
+  // Conselho Colaborativo
+  const cC=document.getElementById('consCOlab');
+  if(cC) cC.innerHTML=consColab.map(c=>`<div class="cons-item">
+    <span class="cons-name">${c.nome}</span>
+    <div class="cons-right">
+      <span class="cons-valor">${fmt(c.valor)}</span>
+      <span class="badge ${isPago(c.status)?'badge-pago':'badge-pendente'}">${c.status||'Pendente'}</span>
+    </div>
+  </div>`).join('');
+  g('colabSummary',`${fmt(cPago)} / ${fmt(cPrev)}`);
 
-  const cE = document.getElementById('consEstat');
-  if (cE) {
-    cE.innerHTML=consEstat.map(c=>`<div class="cons-item">
-      <span class="cons-name">${c.nome}</span>
-      <div class="cons-right"><span class="cons-valor">R$ ${c.valor.toFixed(0)}</span>
-      <span class="badge ${isPago(c.status)?'badge-pago':'badge-pendente'}">${c.status || 'Pendente'}</span></div>
-    </div>`).join('');
-  }
-  g('estatSummary',`R$ ${ePago.toFixed(0)} / R$ ${ePrev.toFixed(0)}`);
+  // Conselho Estatutário
+  const cE=document.getElementById('consEstat');
+  if(cE) cE.innerHTML=consEstat.map(c=>`<div class="cons-item">
+    <span class="cons-name">${c.nome}</span>
+    <div class="cons-right">
+      <span class="cons-valor">${fmt(c.valor)}</span>
+      <span class="badge ${isPago(c.status)?'badge-pago':'badge-pendente'}">${c.status||'Pendente'}</span>
+    </div>
+  </div>`).join('');
+  g('estatSummary',`${fmt(ePago)} / ${fmt(ePrev)}`);
 
   const pcc=cPrev?Math.round(cPago/cPrev*100):0;
   const pce=ePrev?Math.round(ePago/ePrev*100):0;
   const pct=tCP?Math.round(tCA/tCP*100):0;
   const el=document.getElementById('cons-resumo');
-  if(el) {
-    el.innerHTML=`
-      <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;"><span style="color:var(--text2)">Arrecadado Colaborativo</span><span style="color:var(--green);font-weight:600">R$ ${cPago.toFixed(0)}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pcc}%;background:var(--green)"></div></div></div>
-      <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;"><span style="color:var(--text2)">Arrecadado Estatutário</span><span style="color:var(--blue);font-weight:600">R$ ${ePago.toFixed(0)}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pce}%;background:var(--blue)"></div></div></div>
-      <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;"><span style="color:var(--text2)">Total geral (${pct}% do previsto)</span><span style="color:var(--gold);font-weight:600">R$ ${tCA.toLocaleString('pt-BR')} / R$ ${tCP.toLocaleString('pt-BR')}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:var(--gold)"></div></div></div>`;
-  }
+  if(el) el.innerHTML=`
+    <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px"><span style="color:var(--text2)">Arrecadado Colaborativo</span><span style="color:var(--green);font-weight:600">${fmt(cPago)}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pcc}%;background:var(--green)"></div></div></div>
+    <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px"><span style="color:var(--text2)">Arrecadado Estatutário</span><span style="color:var(--blue);font-weight:600">${fmt(ePago)}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pce}%;background:var(--blue)"></div></div></div>
+    <div><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px"><span style="color:var(--text2)">Total geral (${pct}% do previsto)</span><span style="color:var(--gold);font-weight:600">${fmt(tCA)} / ${fmt(tCP)}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:var(--gold)"></div></div></div>`;
 }
 
-/* ========================================================== INIT */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', reloadData);
-} else {
-  reloadData();
-}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',reloadData);}
+else{reloadData();}
 </script>
 </body>
 </html>
